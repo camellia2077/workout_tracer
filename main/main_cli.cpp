@@ -6,17 +6,19 @@
 #include <string>
 #include <filesystem>
 
-// (新增) 引入 Windows 头文件以支持编码设置
 #ifdef _WIN32
 #include <windows.h>
 #endif
 
-// 已修改：更新用法说明以反映新的命令行标志
+/**
+ * @brief (已修改) 更新用法说明以反映路径可以是文件或目录。
+ */
 void printUsage(const char* programName) {
-    std::cerr << "Usage: " << programName << " <log_file.txt> [mode] [options]" << std::endl;
+    std::cerr << "Usage: " << programName << " <path> [mode] [options]" << std::endl;
     std::cerr << std::endl;
     std::cerr << "Description:" << std::endl;
-    std::cerr << "  Processes or validates a workout log file. You must specify a mode." << std::endl;
+    std::cerr << "  Processes or validates workout logs. The <path> can be a single .txt file" << std::endl;
+    std::cerr << "  or a directory containing .txt files." << std::endl;
     std::cerr << std::endl;
     std::cerr << "Modes (mutually exclusive):" << std::endl;
     std::cerr << "  -r, --reprocess        Reprocess the log, output a formatted file, AND save to the database. (Default)" << std::endl;
@@ -29,7 +31,6 @@ void printUsage(const char* programName) {
     std::cerr << "  -h, --help             Show this help message and exit." << std::endl;
 }
 
-// 已修改：重写命令行解析逻辑
 std::optional<AppConfig> parseCommandLine(int argc, char* argv[]) {
     if (argc == 1) {
         printUsage(argv[0]);
@@ -46,7 +47,6 @@ std::optional<AppConfig> parseCommandLine(int argc, char* argv[]) {
             printUsage(argv[0]);
             return std::nullopt;
         }
-        // --- 模式标志 ---
         else if (arg == "-r" || arg == "--reprocess") {
             if (specifiedMode.has_value()) {
                 std::cerr << "Error: Mode flags (-r, -o, -p) are mutually exclusive." << std::endl;
@@ -68,7 +68,6 @@ std::optional<AppConfig> parseCommandLine(int argc, char* argv[]) {
             }
             specifiedMode = OutputMode::DB_ONLY;
         }
-        // --- 其他选项 ---
         else if ((arg == "-y" || arg == "--year") && i + 1 < argc) {
             try {
                 config.specified_year = std::stoi(argv[++i]);
@@ -80,7 +79,6 @@ std::optional<AppConfig> parseCommandLine(int argc, char* argv[]) {
         else if (arg == "-v" || arg == "--validate") {
             config.validate_only = true;
         }
-        // --- 位置参数（日志文件） ---
         else if (arg[0] != '-' && config.log_filepath.empty()) {
             config.log_filepath = arg;
         }
@@ -91,24 +89,19 @@ std::optional<AppConfig> parseCommandLine(int argc, char* argv[]) {
         }
     }
 
-    // 将用户指定的模式赋值给配置，如果未指定，则使用默认值
     if (specifiedMode.has_value()) {
         config.output_mode = specifiedMode.value();
     } else {
-        // 如果用户没有指定任何模式，我们将默认采用-r模式。
-        // validate_only模式优先级最高。
         if (!config.validate_only) {
              config.output_mode = OutputMode::ALL;
         }
     }
 
-    // 检查必需的日志文件路径是否存在
     if (config.log_filepath.empty()) {
-        std::cerr << "Error: Log file path is a required argument. Use --help for more information." << std::endl;
+        std::cerr << "Error: A file or directory path is required. Use --help for more information." << std::endl;
         return std::nullopt;
     }
 
-    // 自动配置路径
     std::filesystem::path exe_path = argv[0];
     config.db_path = (exe_path.parent_path() / "workouts.sqlite3").string();
     config.mapping_path = "mapping.json";
@@ -117,7 +110,6 @@ std::optional<AppConfig> parseCommandLine(int argc, char* argv[]) {
 }
 
 int main(int argc, char* argv[]) {
-    // 设置UTF-8编码
 #ifdef _WIN32
     SetConsoleOutputCP(CP_UTF8);
     SetConsoleCP(CP_UTF8);
@@ -125,11 +117,10 @@ int main(int argc, char* argv[]) {
 
     auto configOpt = parseCommandLine(argc, argv);
     if (!configOpt.has_value()) {
-        // 如果用户请求帮助，则正常退出
         for (int i = 1; i < argc; ++i) {
             if (std::string(argv[i]) == "-h" || std::string(argv[i]) == "--help") return 0;
         }
-        return 1; // 其他解析错误则返回失败
+        return 1;
     }
 
     ActionHandler handler;

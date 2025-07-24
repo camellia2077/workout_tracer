@@ -7,8 +7,9 @@
 #include "db_inserter/DataManager.h"
 #include <string>
 #include <optional>
+#include <vector> // 新增
 
-// 新增：定义输出模式的枚举
+// 定义输出模式的枚举
 enum class OutputMode {
     ALL,        // 输出文件并保存到数据库（默认）
     FILE_ONLY,  // 只输出到文件
@@ -21,7 +22,7 @@ struct AppConfig {
     std::string mapping_path;
     std::optional<int> specified_year;
     bool validate_only = false;
-    OutputMode output_mode = OutputMode::ALL; // 新增：添加输出模式字段，默认为ALL
+    OutputMode output_mode = OutputMode::ALL;
 };
 
 class ActionHandler {
@@ -29,6 +30,9 @@ public:
     bool run(const AppConfig& config);
 
 private:
+    // **新增**: 封装了处理单个文件的核心逻辑
+    bool processFile(const std::string& logFilePath, const AppConfig& config);
+    
     bool writeStringToFile(const std::string& filepath, const std::string& content);
 
     Reprocessor reprocessor_;

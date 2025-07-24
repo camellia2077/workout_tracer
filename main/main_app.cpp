@@ -33,27 +33,27 @@ int main(int argc, char* argv[]) {
     AppConfig config;
     std::string user_choice;
 
-    // 2. [步骤 1/4] 获取日志文件路径
+    // 2. [步骤 1/4] 获取日志文件或文件夹路径 (已修改)
     while (true) {
-        std::cout << "[步骤 1/4] 请输入您的日志文件路径: ";
+        std::cout << "[步骤 1/4] 请输入您的日志文件或文件夹路径: ";
         std::getline(std::cin, config.log_filepath);
 
-        if (std::filesystem::exists(config.log_filepath) && !std::filesystem::is_directory(config.log_filepath)) {
+        if (std::filesystem::exists(config.log_filepath)) {
             break;
         } else {
-            std::cerr << "\n[错误] 文件未找到或路径无效。请检查后重试。\n" << std::endl;
+            std::cerr << "\n[错误] 路径不存在。请检查后重试。\n" << std::endl;
         }
     }
-    std::cout << "-> 日志文件已设定: " << config.log_filepath << std::endl << std::endl;
+    std::cout << "-> 日志路径已设定: " << config.log_filepath << std::endl << std::endl;
 
     // 3. [步骤 2/4] 让用户选择是“处理”还是“仅验证”
     while (true) {
-        std::cout << "[步骤 2/4] 请选择操作 (1: 处理文件, 2: 仅验证格式): ";
+        std::cout << "[步骤 2/4] 请选择操作 (1: 处理, 2: 仅验证格式): ";
         std::getline(std::cin, user_choice);
 
         if (user_choice == "1") {
             config.validate_only = false;
-            std::cout << "-> 已选择: 处理文件。\n" << std::endl;
+            std::cout << "-> 已选择: 处理。\n" << std::endl;
             break;
         } else if (user_choice == "2") {
             config.validate_only = true;
@@ -64,9 +64,9 @@ int main(int argc, char* argv[]) {
         }
     }
     
-    // **已修改：仅在完整处理模式下，才询问输出模式和年份**
+    // 仅在完整处理模式下，才询问输出模式和年份
     if (!config.validate_only) {
-        // 4. [步骤 3/4] (新) 让用户选择输出模式
+        // 4. [步骤 3/4] 让用户选择输出模式
         while (true) {
             std::cout << "[步骤 3/4] 请选择输出模式:" << std::endl;
             std::cout << "  1: 输出格式化文件并存入数据库 (默认)" << std::endl;
@@ -140,7 +140,6 @@ int main(int argc, char* argv[]) {
     }
 
     std::cout << "\n按 Enter 键退出...";
-    // 确保在 getline 之后正确地等待输入
     std::cin.get();
 
     return success ? 0 : 1;
