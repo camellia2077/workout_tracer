@@ -35,6 +35,20 @@
     └── Reprocessor.h
  
 ```
+## 命令行功能
+1.  **模式互斥**: `-r`、`-o`、`-p` 现在是互斥的。如果用户同时使用多个，程序会报错。
+2.  **默认模式**: 如果用户不指定任何模式（但提供了日志文件），程序将**默认执行 `-r` 的行为**，即同时生成文件并存入数据库。这通常是最符合用户期望的默认行为。
+3.  **最高优先级**: `--validate` 选项的优先级最高。即使用户指定了 `-r`，只要同时使用了 `--validate`，程序就只会执行验证。
+4.  **清晰的帮助信息**: `-h` 或 `--help` 会打印出清晰、准确的用法说明。
+
+
+
+  * **只输出文件**: `workout_tracker_cli my_log.txt -o`
+  * **只存入数据库**: `workout_tracker_cli my_log.txt -p`
+  * **两者都做 (显式)**: `workout_tracker_cli my_log.txt -r`
+  * **两者都做 (默认)**: `workout_tracker_cli my_log.txt`
+  * **指定年份并存入数据库**: `workout_tracker_cli my_log.txt -p --year 2023`
+  * **仅验证文件**: `workout_tracker_cli my_log.txt --validate`
 
 ## 验证规则
 

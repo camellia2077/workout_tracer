@@ -7,7 +7,6 @@
 // --- loadValidTitles 和 createRules 函数保持不变 ---
 
 std::optional<std::vector<std::string>> Validator::loadValidTitles(const std::string& mappingFilePath) {
-    // ... (无改动)
     auto jsonDataOpt = JsonReader::readFile(mappingFilePath);
     if (!jsonDataOpt) {
         std::cerr << "Error: [Validator] Could not read or parse mapping file at: " << mappingFilePath << std::endl;
@@ -25,18 +24,15 @@ std::optional<std::vector<std::string>> Validator::loadValidTitles(const std::st
 }
 
 std::optional<Validator::ValidationRules> Validator::createRules(const std::vector<std::string>& validTitles) {
-    // ... (无改动)
     if (validTitles.empty()) {
         std::cerr << "Warning: [Validator] No valid titles found in mapping file. Validation might not be accurate." << std::endl;
     }
-
     std::stringstream titleRegexPattern;
     titleRegexPattern << "^(";
     for (size_t i = 0; i < validTitles.size(); ++i) {
         titleRegexPattern << validTitles[i] << (i < validTitles.size() - 1 ? "|" : "");
     }
     titleRegexPattern << ")$";
-
     try {
         return ValidationRules{
             std::regex(R"(^\d{4}$)"),
@@ -49,56 +45,59 @@ std::optional<Validator::ValidationRules> Validator::createRules(const std::vect
     }
 }
 
-// 已修改：此函数现在可以正确处理无效标题后的状态转换
+// 已修改：实现了新的验证逻辑
 void Validator::validateLine(const std::string& line, ValidationState& state, const ValidationRules& rules, int& errorCount) {
-    // 状态 1: 期望一个日期行
-    if (state.expectingDate) {
-        if (std::regex_match(line, rules.dateRegex)) {
-            state.expectingDate = false;
-            state.expectingTitleOrDate = true;
-        } else {
-            std::cerr << "Error: [Validator] Invalid format at line " << state.lineCounter
-                      << ". Expected a date (e.g., '0704'), but found: \"" << line << "\"" << std::endl;
+    // 检查是否是日期行
+    if (std::regex_match(line, rules.dateRegex)) {
+        // 如果这不是文件中的第一个日期，则检查上一个日期段是否有效
+        if (state.lastDateLine > 0 && !state.contentSeenForDate) {
+            std::cerr << "Error: [Validator] The date entry at line " << state.lastDateLine
+                      << " is empty and must contain at least one record." << std::endl;
             errorCount++;
         }
-        return; 
+        // 重置状态以迎接新的一天
+        state.lastDateLine = state.lineCounter;
+        state.contentSeenForDate = false;
+        state.expectingDate = false;
+        state.expectingTitleOrDate = true;
+        return;
     }
 
-    // 状态 2: 期望一个标题行或新的日期行
+    // 如果程序期望一个日期但得到的不是，则报错
+    if (state.expectingDate) {
+        std::cerr << "Error: [Validator] Invalid format at line " << state.lineCounter
+                  << ". Expected a date (e.g., '0704'), but found: \"" << line << "\"" << std::endl;
+        errorCount++;
+        return;
+    }
+
+    // 状态 2: 期望一个标题行
     if (state.expectingTitleOrDate) {
-        if (std::regex_match(line, rules.dateRegex)) {
-            state.expectingTitleOrDate = true; // 状态不变，下一行继续期望标题或新日期
-        } else if (std::regex_match(line, rules.titleRegex)) {
+        if (std::regex_match(line, rules.titleRegex)) {
             state.expectingTitleOrDate = false; // 成功匹配标题，下一行期望内容
         } else {
             std::cerr << "Error: [Validator] Invalid format at line " << state.lineCounter
-                      << ". Expected a valid title (e.g., 'bp') or a new date, but found: \"" << line << "\"" << std::endl;
+                      << ". Expected a valid title (e.g., 'bp'), but found: \"" << line << "\"" << std::endl;
             errorCount++;
-            // **关键修复点**：即使标题无效，也认为它消耗了一个标题槽位，
-            // 因此下一行应该期望是内容，而不是另一个标题。
-            state.expectingTitleOrDate = false;
+            state.expectingTitleOrDate = false; // 容错：假定这个错误行消耗了标题槽位
         }
-        return; 
+        return;
     }
 
     // 状态 3: (默认) 期望一个内容行
     if (std::regex_match(line, rules.contentRegex)) {
-        state.expectingTitleOrDate = true; // 内容之后，期望新标题或新日期
+        state.contentSeenForDate = true;     // **关键**：标记此日期已有内容
+        state.expectingTitleOrDate = true; // 内容之后，期望新标题
     } else {
         std::cerr << "Error: [Validator] Invalid format at line " << state.lineCounter
                   << ". Expected a content line (e.g., '+60 10+10'), but found: \"" << line << "\"" << std::endl;
         errorCount++;
-        // **容错**：如果内容行也错了，我们假定这个错误日志条目结束，
-        // 并开始期待下一个是新的标题或日期。
-        state.expectingTitleOrDate = true; 
+        state.expectingTitleOrDate = true; // 容错：假定这个错误行消耗了内容槽位
     }
 }
 
-
-// --- 主函数实现 (无改动) ---
-
+// --- 主函数实现 ---
 bool Validator::validate(const std::string& logFilePath, const std::string& mappingFilePath) {
-    // ... (无改动)
     auto validTitlesOpt = loadValidTitles(mappingFilePath);
     if (!validTitlesOpt) return false;
 
@@ -113,8 +112,8 @@ bool Validator::validate(const std::string& logFilePath, const std::string& mapp
     }
 
     ValidationState state;
-    std::string line;
     int errorCount = 0;
+    std::string line;
 
     while (std::getline(file, line)) {
         state.lineCounter++;
@@ -128,8 +127,12 @@ bool Validator::validate(const std::string& logFilePath, const std::string& mapp
         validateLine(line, state, rules, errorCount);
     }
 
-    if (state.expectingTitleOrDate && !state.expectingDate) {
-        std::cerr << "Error: [Validator] File ended unexpectedly. The last title is missing its content line." << std::endl;
+    // 已修改：文件末尾的最终检查
+    // 1. 移除对“dangling title”的检查
+    // 2. 检查最后一个日期段是否为空
+    if (state.lastDateLine > 0 && !state.contentSeenForDate) {
+        std::cerr << "Error: [Validator] The last date entry at line " << state.lastDateLine
+                  << " is empty and must contain at least one record." << std::endl;
         errorCount++;
     }
 
