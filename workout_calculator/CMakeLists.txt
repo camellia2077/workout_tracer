@@ -8,6 +8,12 @@ project(WorkoutParser VERSION 1.0 LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 17) 
 set(CMAKE_CXX_STANDARD_REQUIRED ON) 
 
+# --- 为Release模式添加优化选项 ---
+# -Os: 优化生成文件的大小 (Optimize for size)
+# -s: 移除符号信息 (Strip symbols)
+set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Os")
+set(CMAKE_EXE_LINKER_FLAGS_RELEASE "${CMAKE_EXE_LINKER_FLAGS_RELEASE} -s")
+
 # --- 查找整个项目都需要的库 ---
 find_package(nlohmann_json REQUIRED) 
 find_package(SQLite3 REQUIRED) 
@@ -19,7 +25,6 @@ set(CONFIG_FILE_SOURCE ${CMAKE_CURRENT_SOURCE_DIR}/src/config/mapping.json)
 # 现代CMake：显式列出所有源文件，而不是使用 file(GLOB)
 # ===================================================================
 
-# 将所有共享的源文件定义在一个变量中，以避免代码重复
 # 将所有共享的源文件定义在一个变量中，以避免代码重复
 set(SHARED_SOURCES
     # Common sources

@@ -28,6 +28,8 @@ std::string LogFormatter::format(const std::vector<DailyData>& processedData) {
                     ss << "+";
                 }
             }
+            // 新增：在末尾添加总容量,并转为整数
+            ss << "(" << static_cast<int>(project.volume) << ")";
             // 原有的换行符
             ss << "\n";
         }
