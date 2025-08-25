@@ -4,8 +4,8 @@ cmake_minimum_required(VERSION 3.16)
 # 定义项目名称、版本和语言
 project(WorkoutParser VERSION 1.0 LANGUAGES CXX)
 
-# 设置C++标准为 C++17
-set(CMAKE_CXX_STANDARD 17)
+# 设置C++标准为 C++23
+set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # --- 自动启用 ccache (如果可用) ---

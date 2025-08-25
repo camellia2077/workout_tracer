@@ -2,6 +2,7 @@
 #include "sqlite3.h" // 需要用于预处理语句相关的API
 #include <iostream>
 #include <sstream>
+#include <vector>
 
 LogRepository::LogRepository(Database& db) : database(db) {}
 
@@ -42,26 +43,32 @@ bool LogRepository::save(const std::vector<DailyData>& processedData) {
     const char* sql_select_id = "SELECT id FROM DailyLogs WHERE log_date = ?;";
     const char* sql_insert_project = "INSERT INTO Projects (daily_log_id, project_name, weight, reps_list, volume) VALUES (?, ?, ?, ?, ?);";
 
-    sqlite3_stmt *stmt_insert_date, *stmt_select_id, *stmt_insert_project;
+    sqlite3_stmt *stmt_insert_date = nullptr;
+    sqlite3_stmt *stmt_select_id = nullptr;
+    sqlite3_stmt *stmt_insert_project = nullptr;
 
+    // 预编译所有SQL语句
     if (sqlite3_prepare_v2(dbHandle, sql_insert_date, -1, &stmt_insert_date, 0) != SQLITE_OK ||
         sqlite3_prepare_v2(dbHandle, sql_select_id, -1, &stmt_select_id, 0) != SQLITE_OK ||
         sqlite3_prepare_v2(dbHandle, sql_insert_project, -1, &stmt_insert_project, 0) != SQLITE_OK) {
         std::cerr << "Error: [LogRepository] Failed to prepare statements: " << sqlite3_errmsg(dbHandle) << std::endl;
         database.rollback();
+        // 清理已成功准备的语句
+        if(stmt_insert_date) sqlite3_finalize(stmt_insert_date);
+        if(stmt_select_id) sqlite3_finalize(stmt_select_id);
+        if(stmt_insert_project) sqlite3_finalize(stmt_insert_project);
         return false;
     }
+
+    bool success = true; // 标记操作是否成功
 
     for (const auto& daily : processedData) {
         // 1. 插入日期
         sqlite3_bind_text(stmt_insert_date, 1, daily.date.c_str(), -1, SQLITE_TRANSIENT);
         if (sqlite3_step(stmt_insert_date) != SQLITE_DONE) {
-            std::cerr << "Error: [LogRepository] Failed to execute date insert: " << sqlite3_errmsg(dbHandle) << std::endl;
-            database.rollback();
-            sqlite3_finalize(stmt_insert_date);
-            sqlite3_finalize(stmt_select_id);
-            sqlite3_finalize(stmt_insert_project);
-            return false;
+            std::cerr << "Error: [LogRepository] Failed to execute date insert for " << daily.date << ": " << sqlite3_errmsg(dbHandle) << std::endl;
+            success = false;
+            break; 
         }
         sqlite3_reset(stmt_insert_date); // 重置语句以便下次循环使用
 
@@ -75,11 +82,8 @@ bool LogRepository::save(const std::vector<DailyData>& processedData) {
 
         if (daily_log_id == -1) {
             std::cerr << "Error: [LogRepository] Could not find or insert daily log id for date: " << daily.date << std::endl;
-            database.rollback();
-            sqlite3_finalize(stmt_insert_date);
-            sqlite3_finalize(stmt_select_id);
-            sqlite3_finalize(stmt_insert_project);
-            return false;
+            success = false;
+            break;
         }
 
         // 3. 插入所有项目
@@ -97,15 +101,13 @@ bool LogRepository::save(const std::vector<DailyData>& processedData) {
             sqlite3_bind_double(stmt_insert_project, 5, project.volume);
 
             if (sqlite3_step(stmt_insert_project) != SQLITE_DONE) {
-                std::cerr << "Error: [LogRepository] Failed to insert project: " << sqlite3_errmsg(dbHandle) << std::endl;
-                database.rollback();
-                sqlite3_finalize(stmt_insert_date);
-                sqlite3_finalize(stmt_select_id);
-                sqlite3_finalize(stmt_insert_project);
-                return false;
+                std::cerr << "Error: [LogRepository] Failed to insert project '" << project.projectName << "' for date " << daily.date << ": " << sqlite3_errmsg(dbHandle) << std::endl;
+                success = false;
+                break;
             }
             sqlite3_reset(stmt_insert_project);
         }
+        if (!success) break;
     }
 
     // 清理所有语句
@@ -113,10 +115,15 @@ bool LogRepository::save(const std::vector<DailyData>& processedData) {
     sqlite3_finalize(stmt_select_id);
     sqlite3_finalize(stmt_insert_project);
 
-    if (!database.commit()) {
-        std::cerr << "Error: [LogRepository] Failed to commit transaction." << std::endl;
-        return false;
+    // 根据操作结果提交或回滚事务
+    if (success) {
+        if (!database.commit()) {
+            std::cerr << "Error: [LogRepository] Failed to commit transaction." << std::endl;
+            return false;
+        }
+    } else {
+        database.rollback();
     }
 
-    return true;
+    return success;
 }
