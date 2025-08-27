@@ -19,7 +19,6 @@ bool ActionHandler::run(const AppConfig& config) {
     std::cout << "Reprocessor configured successfully." << std::endl;
     std::cout << "----------------------------------------" << std::endl;
 
-    // **核心改动**: 直接调用 TxtFileReader 来获取所有需要处理的文件路径
     // 无论是单个文件还是目录，TxtFileReader 都会正确处理
     std::vector<std::string> filesToProcess = TxtFileReader::getTxtFilePaths(config.log_filepath);
 
@@ -84,27 +83,58 @@ bool ActionHandler::processFile(const std::string& logFilePath, const AppConfig&
 
     // 4. 根据模式决定是否将格式化后的字符串写入文件
     if (config.output_mode == OutputMode::ALL || config.output_mode == OutputMode::FILE_ONLY) {
-        std::string outputContent = reprocessor_.formatDataToString(processedData);
-        try {
-            const std::string output_dir = "reprocessed";
-            fs::path test_dir_base(config.db_path);
-            fs::path reprocessed_path = test_dir_base.parent_path() / output_dir;
-            fs::create_directories(reprocessed_path); // 使用 create_directories 更安全
-            
-            fs::path input_path(logFilePath);
-            std::string output_filename = input_path.stem().string() + "_reprocessed.txt";
-            fs::path output_filepath = reprocessed_path / output_filename;
+        std::cout << "Grouping data by type and writing to separate files..." << std::endl;
 
-            std::cout << "Writing processed data to '" << output_filepath.string() << "'..." << std::endl;
-            if (!writeStringToFile(output_filepath.string(), outputContent)) {
-                return false;
+        // 按类型对数据进行分组
+        std::map<std::string, std::vector<DailyData>> dataByType;
+        for (const auto& daily : processedData) {
+            for (const auto& project : daily.projects) {
+                // 这个复杂的查找和插入逻辑确保了同一天的不同类型动作被正确地分组
+                auto& dailyDataForType = dataByType[project.type];
+                auto it = std::find_if(dailyDataForType.begin(), dailyDataForType.end(),
+                                       [&](const DailyData& d) { return d.date == daily.date; });
+                if (it != dailyDataForType.end()) {
+                    it->projects.push_back(project);
+                } else {
+                    dailyDataForType.push_back({daily.date, {project}});
+                }
             }
-            std::cout << "Successfully wrote data to file." << std::endl;
+        }
+
+        // 为每种类型的数据写入一个单独的文件到对应子文件夹
+        try {
+            const std::string output_dir_base = "reprocessed";
+            fs::path root_path(config.db_path);
+            fs::path reprocessed_base_path = root_path.parent_path() / output_dir_base;
+
+            fs::path input_path(logFilePath);
+            std::string base_filename = input_path.stem().string() + "_reprocessed.txt";
+
+            for (const auto& [type, typeData] : dataByType) {
+                if (typeData.empty()) continue;
+
+                // 创建特定类型的子文件夹，例如 "reprocessed/push"
+                fs::path type_specific_path = reprocessed_base_path / type;
+                fs::create_directories(type_specific_path);
+
+                fs::path output_filepath = type_specific_path / base_filename;
+
+                std::string outputContent = reprocessor_.formatDataToString(typeData);
+
+                std::cout << "Writing data for type '" << type << "' to '" << output_filepath.string() << "'..." << std::endl;
+                if (!writeStringToFile(output_filepath.string(), outputContent)) {
+                     std::cerr << "Error: Failed to write file for type '" << type << "'." << std::endl;
+                     // 在循环中遇到错误可以考虑是否要中断整个过程
+                }
+            }
+            std::cout << "Successfully wrote data to type-specific directories." << std::endl;
+
         } catch (const fs::filesystem_error& e) {
             std::cerr << "Filesystem error: " << e.what() << std::endl;
             return false;
         }
     }
+
 
     // 5. 根据模式决定是否保存到数据库
     if (config.output_mode == OutputMode::ALL || config.output_mode == OutputMode::DB_ONLY) {

@@ -127,9 +127,6 @@ bool Validator::validate(const std::string& logFilePath, const std::string& mapp
         validateLine(line, state, rules, errorCount);
     }
 
-    // 已修改：文件末尾的最终检查
-    // 1. 移除对“dangling title”的检查
-    // 2. 检查最后一个日期段是否为空
     if (state.lastDateLine > 0 && !state.contentSeenForDate) {
         std::cerr << "Error: [Validator] The last date entry at line " << state.lastDateLine
                   << " is empty and must contain at least one record." << std::endl;

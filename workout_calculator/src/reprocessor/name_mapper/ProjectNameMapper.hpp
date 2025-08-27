@@ -1,24 +1,27 @@
+// src/reprocessor/name_mapper/ProjectNameMapper.hpp
+
 #ifndef NAME_MAPPER_H
 #define NAME_MAPPER_H
 
 #include <string>
 #include <map>
-#include "nlohmann/json.hpp" // 需要包含json头文件
+#include "nlohmann/json.hpp"
+
+// <<< 新增：用于存储映射信息的结构体
+struct ProjectMapping {
+    std::string fullName;
+    std::string type;
+};
 
 class ProjectNameMapper {
 public:
-    /**
-     * @brief 从一个已经解析的JSON对象中加载映射规则。
-     * @param jsonData 包含映射关系的nlohmann::json对象。
-     * @return 如果加载成功返回true，否则返回false。
-     */
     bool loadMappings(const nlohmann::json& jsonData);
 
-    // 获取映射后的全名。如果找不到映射，则返回原始名称。
-    std::string getFullName(const std::string& shortName) const;
+    // <<< 修改：返回包含全名和类型的结构体
+    ProjectMapping getMapping(const std::string& shortName) const;
 
 private:
-    std::map<std::string, std::string> mappings;
+    std::map<std::string, ProjectMapping> mappings;
 };
 
 #endif // NAME_MAPPER_H

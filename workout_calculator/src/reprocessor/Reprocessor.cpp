@@ -67,9 +67,12 @@ void Reprocessor::processData(std::vector<DailyData>& data, std::optional<int> s
     VolumeCalculator::calculateVolume(data); 
 
     // 步骤 5: 应用名称映射
+    // <<< 修改：同时应用名称和类型映射
     for (auto& dailyData : data) {
         for (auto& project : dailyData.projects) {
-            project.projectName = mapper.getFullName(project.projectName);
+            ProjectMapping mapping = mapper.getMapping(project.projectName);
+            project.projectName = mapping.fullName; // 赋值全名
+            project.type = mapping.type;         // 赋值分类
         }
     }
 }

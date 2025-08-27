@@ -56,14 +56,19 @@ std::string LogFormatter::formatDailyLog(const DailyData& daily) {
 // --- 公共接口函数 (现在非常简洁) ---
 
 std::string LogFormatter::format(const std::vector<DailyData>& processedData) {
-    std::string result;
-    // 内存预留容量
-    result.reserve(processedData.size() * 150); 
+    if (processedData.empty() || processedData[0].projects.empty()) {
+        return ""; // 如果没有数据，返回空字符串
+    }
+
+    // <<< 新增：在文件开头标注类型
+    // 从第一个数据点获取类型，因为传入此函数的数据都应是同一类型
+    const std::string& type = processedData[0].projects[0].type;
+    std::string result = std::format("type: {}\n", type);
+
+    result.reserve(processedData.size() * 150);
 
     for (const auto& daily : processedData) {
-        // 在每个日期条目前添加空行以增强可读性
         result += "\n";
-        // 调用辅助函数来处理每天的数据
         result += formatDailyLog(daily);
     }
 

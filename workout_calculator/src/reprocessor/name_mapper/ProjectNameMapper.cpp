@@ -1,28 +1,33 @@
+// src/reprocessor/name_mapper/ProjectNameMapper.cpp
+
 #include "reprocessor/name_mapper/ProjectNameMapper.hpp"
 #include <iostream>
 
+// <<< 修改：适配新的 JSON 结构
 bool ProjectNameMapper::loadMappings(const nlohmann::json& jsonData) {
-    // 检查传入的是否是一个JSON对象
     if (!jsonData.is_object()) {
         std::cerr << "Error: [NameMapper] Provided JSON data is not an object." << std::endl;
         return false;
     }
 
-    // 遍历JSON对象并填充我们的map
     for (auto& el : jsonData.items()) {
-        if (el.value().is_string()) {
-            mappings[el.key()] = el.value();
+        const auto& value = el.value();
+        if (value.is_object() && value.contains("fullName") && value.contains("type")) {
+            mappings[el.key()] = {
+                value["fullName"].get<std::string>(),
+                value["type"].get<std::string>()
+            };
         }
     }
     return true;
 }
 
-std::string ProjectNameMapper::getFullName(const std::string& shortName) const {
+// <<< 修改：返回 ProjectMapping 结构体
+ProjectMapping ProjectNameMapper::getMapping(const std::string& shortName) const {
     auto it = mappings.find(shortName);
     if (it != mappings.end()) {
-        // 如果找到了映射，返回全名
         return it->second;
     }
-    // 如果没找到，返回原始名称
-    return shortName;
+    // 如果没找到，返回一个默认值，类型为 "unknown"
+    return {shortName, "unknown"};
 }
