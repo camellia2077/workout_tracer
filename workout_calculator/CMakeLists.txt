@@ -44,10 +44,7 @@ set(SHARED_SOURCES
     src/reprocessor/validator/Validator.cpp
     src/reprocessor/volume_calculator/VolumeCalculator.cpp
     src/reprocessor/Reprocessor.cpp
-    # DB Inserter sources
-    src/db_inserter/DataManager.cpp
-    src/db_inserter/_internal/Database.cpp
-    src/db_inserter/_internal/LogRepository.cpp
+
     # Controller sources
     src/controller/ActionHandler.cpp
 )
@@ -81,7 +78,7 @@ function(configure_workout_target TARGET_NAME ENTRY_POINT_FILE)
         ${TARGET_NAME}
         PRIVATE
         nlohmann_json::nlohmann_json
-        SQLite::SQLite3
+        # SQLite::SQLite3
     )
 
     add_custom_command(

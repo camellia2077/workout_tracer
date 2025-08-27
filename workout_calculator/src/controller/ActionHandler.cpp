@@ -45,11 +45,8 @@ bool ActionHandler::run(const AppConfig& config) {
     return successCount == filesToProcess.size();
 }
 
-/**
- * @brief 处理单个日志文件的核心逻辑 (此函数保持不变)
- */
 bool ActionHandler::processFile(const std::string& logFilePath, const AppConfig& config) {
-    // 1. 验证文件
+    // 1. 验证文件 (不变)
     std::cout << "Validating log file..." << std::endl;
     if (!reprocessor_.validateFile(logFilePath, config.mapping_path)) {
         std::cerr << "Error: Log file validation failed. Please check the file format." << std::endl;
@@ -62,7 +59,7 @@ bool ActionHandler::processFile(const std::string& logFilePath, const AppConfig&
         return true;
     }
 
-    // 2. 解析文件
+    // 2. 解析文件 (不变)
     std::cout << "Parsing log file..." << std::endl;
     auto parsedDataOpt = reprocessor_.parseFile(logFilePath);
     if (!parsedDataOpt.has_value()) {
@@ -76,78 +73,57 @@ bool ActionHandler::processFile(const std::string& logFilePath, const AppConfig&
     }
     std::cout << "File parsed successfully." << std::endl;
 
-    // 3. 处理数据
+    // 3. 处理数据 (不变)
     std::cout << "Processing extracted data..." << std::endl;
     reprocessor_.processData(processedData, config.specified_year);
     std::cout << "Data processed successfully." << std::endl;
 
-    // 4. 根据模式决定是否将格式化后的字符串写入文件
-    if (config.output_mode == OutputMode::ALL || config.output_mode == OutputMode::FILE_ONLY) {
-        std::cout << "Grouping data by type and writing to separate files..." << std::endl;
+    // 4. 将格式化后的字符串写入文件 (逻辑简化)
+    std::cout << "Grouping data by type and writing to separate files..." << std::endl;
 
-        // 按类型对数据进行分组
-        std::map<std::string, std::vector<DailyData>> dataByType;
-        for (const auto& daily : processedData) {
-            for (const auto& project : daily.projects) {
-                // 这个复杂的查找和插入逻辑确保了同一天的不同类型动作被正确地分组
-                auto& dailyDataForType = dataByType[project.type];
-                auto it = std::find_if(dailyDataForType.begin(), dailyDataForType.end(),
-                                       [&](const DailyData& d) { return d.date == daily.date; });
-                if (it != dailyDataForType.end()) {
-                    it->projects.push_back(project);
-                } else {
-                    dailyDataForType.push_back({daily.date, {project}});
-                }
+    // 按类型对数据进行分组 (不变)
+    std::map<std::string, std::vector<DailyData>> dataByType;
+    for (const auto& daily : processedData) {
+        for (const auto& project : daily.projects) {
+            auto& dailyDataForType = dataByType[project.type];
+            auto it = std::find_if(dailyDataForType.begin(), dailyDataForType.end(),
+                                   [&](const DailyData& d) { return d.date == daily.date; });
+            if (it != dailyDataForType.end()) {
+                it->projects.push_back(project);
+            } else {
+                dailyDataForType.push_back({daily.date, {project}});
             }
-        }
-
-        // 为每种类型的数据写入一个单独的文件到对应子文件夹
-        try {
-            const std::string output_dir_base = "reprocessed";
-            fs::path root_path(config.db_path);
-            fs::path reprocessed_base_path = root_path.parent_path() / output_dir_base;
-
-            fs::path input_path(logFilePath);
-            std::string base_filename = input_path.stem().string() + "_reprocessed.txt";
-
-            for (const auto& [type, typeData] : dataByType) {
-                if (typeData.empty()) continue;
-
-                // 创建特定类型的子文件夹，例如 "reprocessed/push"
-                fs::path type_specific_path = reprocessed_base_path / type;
-                fs::create_directories(type_specific_path);
-
-                fs::path output_filepath = type_specific_path / base_filename;
-
-                std::string outputContent = reprocessor_.formatDataToString(typeData);
-
-                std::cout << "Writing data for type '" << type << "' to '" << output_filepath.string() << "'..." << std::endl;
-                if (!writeStringToFile(output_filepath.string(), outputContent)) {
-                     std::cerr << "Error: Failed to write file for type '" << type << "'." << std::endl;
-                     // 在循环中遇到错误可以考虑是否要中断整个过程
-                }
-            }
-            std::cout << "Successfully wrote data to type-specific directories." << std::endl;
-
-        } catch (const fs::filesystem_error& e) {
-            std::cerr << "Filesystem error: " << e.what() << std::endl;
-            return false;
         }
     }
 
+    // 写入文件到对应子文件夹 (路径逻辑修改)
+    try {
+        const std::string output_dir_base = "reprocessed";
+        // 使用新的 base_path 来构建输出路径
+        fs::path reprocessed_base_path = fs::path(config.base_path) / output_dir_base;
 
-    // 5. 根据模式决定是否保存到数据库
-    if (config.output_mode == OutputMode::ALL || config.output_mode == OutputMode::DB_ONLY) {
-        std::cout << "Database sync process started..." << std::endl;
-        if (!dataManager_.connectAndInitialize(config.db_path)) {
-            std::cerr << "Error: Database setup failed for: " << config.db_path << std::endl;
-            return false;
+        fs::path input_path(logFilePath);
+        std::string base_filename = input_path.stem().string() + "_reprocessed.txt";
+
+        for (const auto& [type, typeData] : dataByType) {
+            if (typeData.empty()) continue;
+
+            fs::path type_specific_path = reprocessed_base_path / type;
+            fs::create_directories(type_specific_path);
+
+            fs::path output_filepath = type_specific_path / base_filename;
+            std::string outputContent = reprocessor_.formatDataToString(typeData);
+
+            std::cout << "Writing data for type '" << type << "' to '" << output_filepath.string() << "'..." << std::endl;
+            if (!writeStringToFile(output_filepath.string(), outputContent)) {
+                 std::cerr << "Error: Failed to write file for type '" << type << "'." << std::endl;
+            }
         }
-        if (!dataManager_.saveData(processedData)) {
-            std::cerr << "Error: Failed to save data to the database." << std::endl;
-            return false;
-        }
-        std::cout << "Data successfully saved to database: " << config.db_path << std::endl;
+        std::cout << "Successfully wrote data to type-specific directories." << std::endl;
+
+    } catch (const fs::filesystem_error& e) {
+        std::cerr << "Filesystem error: " << e.what() << std::endl;
+        return false;
     }
 
     return true;
