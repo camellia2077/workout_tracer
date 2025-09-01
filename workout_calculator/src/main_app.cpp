@@ -1,3 +1,5 @@
+// src/main_app.cpp
+
 #include "controller/ActionHandler.hpp" // 引入 ActionHandler 和 AppConfig
 #include <iostream>
 #include <string>
@@ -38,24 +40,28 @@ int main(int argc, char* argv[]) {
     }
     std::cout << "-> 日志路径已设定: " << config.log_filepath << std::endl << std::endl;
 
-    // 3. [步骤 2/3] 让用户选择是“处理”还是“仅验证”
+    // 3. [步骤 2/3] 让用户选择是“转换”还是“仅验证”
     while (true) {
-        std::cout << "[步骤 2/3] 请选择操作 (1: 处理, 2: 仅验证格式): ";
+        // [MODIFIED] 更新了用户提示
+        std::cout << "[步骤 2/3] 请选择操作 (1: 转换日志为JSON, 2: 仅验证日志格式): ";
         std::getline(std::cin, user_choice);
         if (user_choice == "1") {
-            config.validate_only = false;
+            // [MODIFIED] 设置 action 为 Convert
+            config.action = ActionType::Convert;
             break;
         } else if (user_choice == "2") {
-            config.validate_only = true;
+            // [MODIFIED] 设置 action 为 Validate
+            config.action = ActionType::Validate;
             break;
         } else {
             std::cerr << "\n[错误] 输入无效，请输入 '1' 或 '2'。\n" << std::endl;
         }
     }
-    std::cout << "-> 已选择: " << (config.validate_only ? "仅验证格式" : "处理") << "。\n" << std::endl;
+    // [MODIFIED] 更新了确认信息
+    std::cout << "-> 已选择: " << (config.action == ActionType::Convert ? "转换日志为JSON" : "仅验证日志格式") << "。\n" << std::endl;
     
-    // 仅在完整处理模式下，才询问年份
-    if (!config.validate_only) {
+    // [MODIFIED] 仅在“转换”模式下才询问年份
+    if (config.action == ActionType::Convert) {
         // 4. [步骤 3/3] 获取可选的年份信息
         while (true) {
             std::cout << "[步骤 3/3] 请输入4位数的年份 (例如 2024), 或直接按 Enter 键使用当年: ";
