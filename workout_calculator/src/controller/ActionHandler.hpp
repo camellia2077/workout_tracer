@@ -7,7 +7,6 @@
 #include <string>
 #include <optional>
 
-// [MODIFIED] 添加了 Insert 动作
 enum class ActionType {
     Validate,
     Convert,
@@ -20,8 +19,7 @@ struct AppConfig {
     std::string mapping_path;
     std::string base_path;
     std::optional<int> specified_year;
-    // [NEW] 添加数据库路径配置
-    std::string db_path;
+    // [REMOVED] db_path 字段已被移除
 };
 
 class ActionHandler {

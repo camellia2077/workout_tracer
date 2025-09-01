@@ -25,19 +25,19 @@ int main(int argc, char* argv[]) {
     AppConfig config;
     std::string user_choice;
 
-    // [步骤 1/4] 获取输入路径
-    std::cout << "[步骤 1/4] 请输入要处理的路径: ";
+    // [步骤 1/3] 获取输入路径
+    std::cout << "[步骤 1/3] 请输入要处理的路径: ";
     std::getline(std::cin, config.log_filepath);
     while (!std::filesystem::exists(config.log_filepath)) {
         std::cerr << "\n[错误] 路径不存在。请检查后重试。\n" << std::endl;
-        std::cout << "[步骤 1/4] 请输入要处理的路径: ";
+        std::cout << "[步骤 1/3] 请输入要处理的路径: ";
         std::getline(std::cin, config.log_filepath);
     }
     std::cout << "-> 输入路径已设定: " << config.log_filepath << std::endl << std::endl;
 
-    // [步骤 2/4] 让用户选择操作
+    // [步骤 2/3] 让用户选择操作
     while (true) {
-        std::cout << "[步骤 2/4] 请选择操作 (1: 转换, 2: 验证, 3: 插入到数据库): ";
+        std::cout << "[步骤 2/3] 请选择操作 (1: 转换, 2: 验证, 3: 插入到数据库): ";
         std::getline(std::cin, user_choice);
         if (user_choice == "1") { config.action = ActionType::Convert; break; }
         if (user_choice == "2") { config.action = ActionType::Validate; break; }
@@ -46,10 +46,10 @@ int main(int argc, char* argv[]) {
     }
     std::cout << "-> 操作已选择。\n" << std::endl;
 
-    // [步骤 3/4] 根据操作获取额外信息
+    // [步骤 3/3] 根据操作获取额外信息
     if (config.action == ActionType::Convert) {
         while (true) {
-            std::cout << "[步骤 3/4] 请输入4位数的年份 (例如 2024), 或直接按 Enter 使用当年: ";
+            std::cout << "[步骤 3/3] 请输入4位数的年份 (例如 2024), 或直接按 Enter 使用当年: ";
             std::getline(std::cin, user_choice);
             if (user_choice.empty()) {
                 config.specified_year = std::nullopt;
@@ -69,18 +69,9 @@ int main(int argc, char* argv[]) {
         }
         std::cout << "-> 年份设定完成。\n" << std::endl;
     }
-    else if (config.action == ActionType::Insert) {
-        std::cout << "[步骤 3/4] 请输入SQLite数据库文件的路径 (例如: data.db): ";
-        std::getline(std::cin, config.db_path);
-        while(config.db_path.empty()){
-             std::cerr << "\n[错误] 数据库路径不能为空。\n" << std::endl;
-             std::cout << "[步骤 3/4] 请输入SQLite数据库文件的路径 (例如: data.db): ";
-             std::getline(std::cin, config.db_path);
-        }
-        std::cout << "-> 数据库路径已设定: " << config.db_path << std::endl << std::endl;
-    }
+    // [REMOVED] 询问数据库路径的逻辑已被移除
 
-    // [步骤 4/4] 自动配置路径
+    // 自动配置路径
     std::cout << "正在自动配置其余路径..." << std::endl;
     std::filesystem::path exe_path = argv[0];
     config.base_path = exe_path.parent_path().string();

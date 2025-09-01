@@ -42,7 +42,7 @@ set(CONFIG_FILE_SOURCE ${CMAKE_CURRENT_SOURCE_DIR}/src/config/mapping.json)
 # --- Common 模块 ---
 set(COMMON_SOURCES
     src/common/JsonReader.cpp
-    src/common/TxtFileReader.cpp
+    src/common/FileReader.cpp
 )
 
 # --- Reprocessor 模块 ---

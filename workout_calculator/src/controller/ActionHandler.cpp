@@ -1,7 +1,7 @@
 // src/controller/ActionHandler.cpp
 
 #include "ActionHandler.hpp"
-#include "common/TxtFileReader.hpp"
+#include "common/FileReader.hpp"
 #include "common/JsonReader.hpp"
 #include "reprocessor/log_formatter/JsonFormatter.hpp" 
 #include "db/DbManager.hpp"
@@ -15,29 +15,6 @@
 
 namespace fs = std::filesystem;
 
-/**
- * @brief (新增) 辅助函数，用于递归查找指定路径下的所有 .json 文件。
- * @param path 要搜索的文件或目录路径。
- * @return 包含所有找到的 .json 文件完整路径的向量。
- */
-static std::vector<std::string> getJsonFilePaths(const std::string& path) {
-    std::vector<std::string> filePaths;
-    if (!fs::exists(path)) {
-        std::cerr << "Error: [ActionHandler] Path does not exist: " << path << std::endl;
-        return filePaths;
-    }
-    if (fs::is_directory(path)) {
-        for (const auto& entry : fs::recursive_directory_iterator(path)) {
-            if (entry.is_regular_file() && entry.path().extension() == ".json") {
-                filePaths.push_back(entry.path().string());
-            }
-        }
-    } else if (fs::is_regular_file(path) && fs::path(path).extension() == ".json") {
-        filePaths.push_back(path);
-    }
-    return filePaths;
-}
-
 bool ActionHandler::run(const AppConfig& config) {
     // 根据操作类型，决定是否需要配置 reprocessor
     if (config.action == ActionType::Validate || config.action == ActionType::Convert) {
@@ -45,7 +22,7 @@ bool ActionHandler::run(const AppConfig& config) {
             return false;
         }
 
-        std::vector<std::string> filesToProcess = TxtFileReader::getTxtFilePaths(config.log_filepath);
+        std::vector<std::string> filesToProcess = FileReader::findFilesByExtension(config.log_filepath, ".txt");
         if (filesToProcess.empty()) {
             std::cout << "Warning: No .txt files found to process." << std::endl;
             return true;
@@ -126,12 +103,16 @@ bool ActionHandler::run(const AppConfig& config) {
 
     } else if (config.action == ActionType::Insert) {
         std::cout << "Performing database insertion..." << std::endl;
-        DbManager dbManager(config.db_path);
+        
+        // [MODIFIED] 数据库路径现在是硬编码的，并基于程序的根目录
+        fs::path db_path = fs::path(config.base_path) / "workout_logs.sqlite3";
+        DbManager dbManager(db_path.string());
+
         if (!dbManager.open()) {
             return false;
         }
         
-        std::vector<std::string> jsonFiles = getJsonFilePaths(config.log_filepath);
+        std::vector<std::string> jsonFiles = FileReader::findFilesByExtension(config.log_filepath, ".json");
         if (jsonFiles.empty()) {
             std::cout << "Warning: No .json files found to insert." << std::endl;
             return true;

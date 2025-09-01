@@ -17,16 +17,17 @@ void printUsage(const char* programName) {
     std::cerr << "Description:" << std::endl;
     std::cerr << "  Processes, validates, or inserts workout logs." << std::endl;
     std::cerr << "  For 'validate' and 'convert', <path> is a .txt file or directory." << std::endl;
-    std::cerr << "  For 'insert', <path> is a .json file or a directory of them (e.g., 'reprocessed_json')." << std::endl;
+    std::cerr << "  For 'insert', <path> is a .json file or a directory (e.g., 'reprocessed_json')." << std::endl;
     std::cerr << std::endl;
     std::cerr << "Commands:" << std::endl;
-    std::cerr << "  validate               Only validate the log file format and exit." << std::endl;
+    std::cerr << "  validate               Only validate the log file format." << std::endl;
     std::cerr << "  convert                Convert the log file to JSON format." << std::endl;
-    std::cerr << "  insert                 Insert reprocessed JSON files into a SQLite database." << std::endl;
+    // [MODIFIED] 简化了 insert 命令的描述
+    std::cerr << "  insert                 Insert reprocessed JSON files into the database (workout_logs.sqlite3)." << std::endl;
     std::cerr << std::endl;
     std::cerr << "Options:" << std::endl;
     std::cerr << "  -y, --year <year>      (For 'convert') Specify a 4-digit year. Defaults to current." << std::endl;
-    std::cerr << "  --db <db_file>         (For 'insert') Path to the SQLite database file." << std::endl;
+    // [REMOVED] --db 选项已被移除
     std::cerr << "  -h, --help             Show this help message and exit." << std::endl;
 }
 
@@ -54,8 +55,7 @@ std::optional<AppConfig> parseCommandLine(int argc, char* argv[]) {
         return std::nullopt;
     }
 
-    // Parse options based on command
-    bool db_path_found = false;
+    // Parse options
     for (size_t i = 2; i < args.size(); ++i) {
         if (args[i] == "-h" || args[i] == "--help") {
             printUsage(argv[0]);
@@ -73,24 +73,12 @@ std::optional<AppConfig> parseCommandLine(int argc, char* argv[]) {
                 return std::nullopt;
             }
         }
-        else if (args[i] == "--db" && i + 1 < args.size()) {
-            if (config.action != ActionType::Insert) {
-                std::cerr << "Error: --db option is only valid for the 'insert' command." << std::endl;
-                return std::nullopt;
-            }
-            config.db_path = args[++i];
-            db_path_found = true;
-        }
+        // [REMOVED] --db 的解析逻辑已被移除
         else {
             std::cerr << "Error: Unknown or invalid argument '" << args[i] << "'" << std::endl;
             printUsage(argv[0]);
             return std::nullopt;
         }
-    }
-
-    if (config.action == ActionType::Insert && !db_path_found) {
-        std::cerr << "Error: The 'insert' command requires a --db <db_file> option." << std::endl;
-        return std::nullopt;
     }
 
     std::filesystem::path exe_path = argv[0];

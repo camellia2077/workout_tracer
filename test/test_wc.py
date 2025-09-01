@@ -21,11 +21,18 @@ INPUT_DIR = r"C:\Computer\my_github\github_cpp\workout_calculator\RECORD"
 EXE_NAME = 'workout_tracker_cli.exe'
 # 定义配置文件名
 CONFIG_NAME = 'mapping.json'
+# [MODIFIED] 更新数据库名称以匹配硬编码的值
+DB_NAME = 'workout_logs.sqlite3'
 
-# [MODIFIED] 定义需要清理的文件夹
+# 定义需要清理的项
 DIRS_TO_DELETE = [
     'test_output',
-    'reprocessed_json' # 更新为新的输出目录
+    'reprocessed_json' 
+]
+FILES_TO_DELETE = [
+    EXE_NAME, 
+    CONFIG_NAME,
+    DB_NAME 
 ]
 
 # ===================================================================
@@ -100,10 +107,8 @@ def execute_command(exe_path, args, log_filename, output_dir):
 def cleanup(base_dir):
     """清理上一次运行留下的文件和文件夹。"""
     print(f"{CYAN}--- 1. Cleaning Workspace ---{RESET}")
-    # ... (此函数内容不变) ...
     success = True
-    files_to_delete = [EXE_NAME, CONFIG_NAME]
-    for file_name in files_to_delete:
+    for file_name in FILES_TO_DELETE:
         file_path = os.path.join(base_dir, file_name)
         if os.path.exists(file_path):
             try:
@@ -126,7 +131,6 @@ def cleanup(base_dir):
 def prepare_executable(base_dir):
     """从build目录复制可执行文件和配置文件。"""
     print(f"{CYAN}--- 2. Preparing Dependencies ---{RESET}")
-    # ... (此函数内容不变) ...
     files_to_copy = { EXE_NAME: "可执行文件", CONFIG_NAME: "配置文件" }
     all_success = True
     for file_name, file_desc in files_to_copy.items():
@@ -146,7 +150,7 @@ def prepare_executable(base_dir):
     return all_success
 
 def run_validation_test(base_dir):
-    """[新] 执行'validate'命令的测试。"""
+    """执行'validate'命令的测试。"""
     print(f"{CYAN}--- 3. Running Validation Test ---{RESET}")
     exe_path = os.path.join(base_dir, EXE_NAME)
     output_dir = os.path.join(base_dir, 'test_output')
@@ -156,15 +160,30 @@ def run_validation_test(base_dir):
     return execute_command(exe_path, command_args, "validation_test.log", output_dir)
 
 def run_conversion_test(base_dir):
-    """[新] 执行'convert'命令的测试。"""
+    """执行'convert'命令的测试。"""
     print(f"{CYAN}--- 4. Running Conversion Test ---{RESET}")
     exe_path = os.path.join(base_dir, EXE_NAME)
     output_dir = os.path.join(base_dir, 'test_output')
     os.makedirs(output_dir, exist_ok=True)
     
-    # 使用固定的年份以保证测试的可重复性
     command_args = [INPUT_DIR, "convert", "--year", "2025"]
     return execute_command(exe_path, command_args, "conversion_test.log", output_dir)
+
+def run_insertion_test(base_dir):
+    """执行'insert'命令的测试。"""
+    print(f"{CYAN}--- 5. Running Database Insertion Test ---{RESET}")
+    exe_path = os.path.join(base_dir, EXE_NAME)
+    output_dir = os.path.join(base_dir, 'test_output')
+    json_input_dir = os.path.join(base_dir, 'reprocessed_json')
+    os.makedirs(output_dir, exist_ok=True)
+    
+    if not os.path.exists(json_input_dir):
+        print(f"  {RED}错误: 未找到 'reprocessed_json' 目录。转换步骤可能已失败。{RESET}")
+        return False
+        
+    # [MODIFIED] 移除了 "--db" 参数，因为程序现在硬编码了数据库路径
+    command_args = [json_input_dir, "insert"]
+    return execute_command(exe_path, command_args, "insertion_test.log", output_dir)
 
 # ===================================================================
 # 主函数
@@ -195,8 +214,12 @@ def main():
         print(f"\n{RED}❌ 转换测试失败。请检查 'test_output/conversion_test.log' 获取详情。{RESET}")
         sys.exit(1)
     
+    if not run_insertion_test(script_dir):
+        print(f"\n{RED}❌ 数据库插入测试失败。请检查 'test_output/insertion_test.log' 获取详情。{RESET}")
+        sys.exit(1)
+
     print(f"\n{GREEN}✅ 所有测试步骤成功完成!{RESET}")
-    print(f"{GREEN}   请检查 'reprocessed_json' 目录以验证转换结果。{RESET}")
+    print(f"{GREEN}   请检查 'reprocessed_json' 目录和 '{DB_NAME}' 文件以验证最终结果。{RESET}")
 
 if __name__ == '__main__':
     main()
