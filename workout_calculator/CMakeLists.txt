@@ -72,7 +72,9 @@ set(DB_SOURCES
 # --- Report 模块 ---
 # [FIXED] 修正了这里的源文件路径
 set(REPORT_SOURCES
-    src/report/ReportGenerator.cpp
+    src/report/database/DatabaseManager.cpp
+    src/report/formatter/MarkdownFormatter.cpp
+    src/report/facade/ReportFacade.cpp
 )
 
 # --- 整合所有共享源文件 ---

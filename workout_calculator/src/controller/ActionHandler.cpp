@@ -6,7 +6,7 @@
 #include "reprocessor/log_formatter/JsonFormatter.hpp" 
 #include "db/DbManager.hpp"
 #include "db/DbInsertor.hpp"
-#include "report/ReportGenerator.hpp" // [NEW] 引入 ReportGenerator
+#include "report/facade/ReportFacade.hpp"
 #include <iostream>
 #include <fstream>
 #include <filesystem>
@@ -48,7 +48,6 @@ bool ActionHandler::run(const AppConfig& config) {
                 if (!reprocessor_.validate(filePath)) {
                     std::cerr << "Validation failed, skipping conversion." << std::endl;
                 } else {
-                    // [MODIFIED] 调用 convert 不再需要年份参数
                     auto processedDataOpt = reprocessor_.convert(filePath);
                     if (processedDataOpt.has_value() && !processedDataOpt.value().empty()) {
                         try {
@@ -152,7 +151,8 @@ bool ActionHandler::run(const AppConfig& config) {
         
         fs::path output_dir = fs::path(config.base_path) / "output_file" / "md";
         
-        if (ReportGenerator::generate_markdown_files(dbManager.getConnection(), output_dir.string())) {
+        // [MODIFIED] 调用 ReportFacade 的新接口
+        if (ReportFacade::generate_report(dbManager.getConnection(), output_dir.string())) {
             std::cout << "\nReport export completed successfully." << std::endl;
             return true;
         } else {
