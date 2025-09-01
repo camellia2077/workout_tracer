@@ -46,8 +46,6 @@ int main(int argc, char* argv[]) {
     }
     std::cout << "-> 操作已选择。\n" << std::endl;
 
-    // [REMOVED] 询问年份的步骤已被完全移除
-
     // 自动配置路径
     std::cout << "正在自动配置其余路径..." << std::endl;
     std::filesystem::path exe_path = argv[0];
@@ -57,8 +55,9 @@ int main(int argc, char* argv[]) {
     std::cout << "-> 映射文件路径: " << config.mapping_path << std::endl << std::endl;
 
     std::cout << "配置完成，开始执行...\n" << std::endl;
-    ActionHandler handler;
-    bool success = handler.run(config);
+    
+    // [MODIFIED] 直接调用 ActionHandler 的静态 run 方法
+    bool success = ActionHandler::run(config);
 
     if (success) {
         std::cout << "\n操作成功完成！" << std::endl;

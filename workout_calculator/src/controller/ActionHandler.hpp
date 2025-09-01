@@ -3,11 +3,8 @@
 #ifndef ACTION_HANDLER_H
 #define ACTION_HANDLER_H
 
-#include "reprocessor/Reprocessor.hpp"
 #include <string>
-#include <optional>
 
-// [MODIFIED] 添加了 Export 动作
 enum class ActionType {
     Validate,
     Convert,
@@ -20,16 +17,12 @@ struct AppConfig {
     std::string log_filepath;      
     std::string mapping_path;
     std::string base_path;
-    // [REMOVED] specified_year 已被移除
 };
 
 class ActionHandler {
 public:
-    bool run(const AppConfig& config);
-
-private:
-    bool writeStringToFile(const std::string& filepath, const std::string& content);
-    Reprocessor reprocessor_;
+    // Add the "static" keyword here
+    static bool run(const AppConfig& config);
 };
 
 #endif // ACTION_HANDLER_H

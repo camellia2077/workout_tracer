@@ -24,7 +24,6 @@ void printUsage(const char* programName) {
     std::cerr << "  export                 Export all data from the database to Markdown files." << std::endl;
     std::cerr << std::endl;
     std::cerr << "Options:" << std::endl;
-    // [REMOVED] 年份选项已被移除
     std::cerr << "  -h, --help             Show this help message and exit." << std::endl;
 }
 
@@ -40,7 +39,7 @@ std::optional<AppConfig> parseCommandLine(int argc, char* argv[]) {
 
     if (command == "export") {
         config.action = ActionType::Export;
-        if (args.size() > 1) { // export 命令不应有额外参数
+        if (args.size() > 1) { 
             std::cerr << "Error: 'export' command does not take any additional arguments." << std::endl;
             return std::nullopt;
         }
@@ -55,7 +54,6 @@ std::optional<AppConfig> parseCommandLine(int argc, char* argv[]) {
         if (command == "convert") config.action = ActionType::Convert;
         if (command == "insert") config.action = ActionType::Insert;
 
-        // [REMOVED] 解析年份选项的逻辑已被移除
         if (args.size() > 2) {
             std::cerr << "Error: Unknown or invalid argument '" << args[2] << "'" << std::endl;
             return std::nullopt;
@@ -88,8 +86,8 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    ActionHandler handler;
-    bool success = handler.run(configOpt.value());
+    // [MODIFIED] 直接调用 ActionHandler 的静态 run 方法
+    bool success = ActionHandler::run(configOpt.value());
 
     return success ? 0 : 1;
 }

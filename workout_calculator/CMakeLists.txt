@@ -61,6 +61,8 @@ set(REPROCESSOR_SOURCES
 # --- Controller 模块 ---
 set(CONTROLLER_SOURCES
     src/controller/ActionHandler.cpp
+    src/controller/FileProcessorHandler.cpp
+    src/controller/DatabaseHandler.cpp
 )
 
 # --- DB 模块 ---

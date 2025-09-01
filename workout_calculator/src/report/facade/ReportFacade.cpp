@@ -1,8 +1,8 @@
 // src/facade/ReportFacade.cpp
 
 #include "ReportFacade.hpp"
-#include "../database/DatabaseManager.hpp"
-#include "../formatter/MarkdownFormatter.hpp"
+#include "report/database/DatabaseManager.hpp"
+#include "report/formatter/MarkdownFormatter.hpp"
 #include <iostream>
 
 bool ReportFacade::generate_report(sqlite3* db, const std::string& output_dir) {
