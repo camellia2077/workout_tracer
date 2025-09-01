@@ -1,17 +1,21 @@
+// src/reprocessor/volume_calculator/VolumeCalculator.cpp
+
 #include "VolumeCalculator.hpp"
-#include <numeric> // 用于 std::accumulate
+#include <numeric>
 
 void VolumeCalculator::calculateVolume(std::vector<DailyData>& allData) {
-    // 遍历每一天的数据
     for (auto& dailyData : allData) {
-        // 遍历当天的每一个项目
         for (auto& project : dailyData.projects) {
-            // 计算总次数
-            // std::accumulate可以高效地对容器内的元素求和
-            double totalReps = std::accumulate(project.reps.begin(), project.reps.end(), 0);
-
-            // 计算容量并存入结构体
-            project.volume = project.weight * totalReps;
+            double totalProjectVolume = 0.0;
+            // 遍历项目中的每一组
+            for (auto& set : project.sets) {
+                // 1. 计算单组的容量
+                set.volume = set.weight * set.reps;
+                // 2. 累加到项目的总容量中
+                totalProjectVolume += set.volume;
+            }
+            // 3. 将计算出的总容量存入结构体
+            project.totalVolume = totalProjectVolume;
         }
     }
 }

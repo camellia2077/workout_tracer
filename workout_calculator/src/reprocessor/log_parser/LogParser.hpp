@@ -1,3 +1,5 @@
+// src/reprocessor/log_parser/LogParser.hpp
+
 #ifndef LOG_PARSER_H
 #define LOG_PARSER_H
 
@@ -7,21 +9,15 @@
 
 class LogParser {
 public:
-    // 构造函数
     LogParser();
-
-    // 解析指定路径的txt文件
-    // 成功返回true, 失败返回false
     bool parseFile(const std::string& filePath);
-
-    // 获取解析后的数据
     const std::vector<DailyData>& getParsedData() const;
 
 private:
-    std::vector<DailyData> allDailyData; // 存储所有解析出的数据
+    std::vector<DailyData> allDailyData;
 
-    // 内部辅助函数，用于解析内容行
-    void parseContentLine(const std::string& line, ProjectData& projectData);
+    // [FIXED] 更新函数声明以匹配 .cpp 文件中的实现
+    std::vector<SetData> parseContentLine(const std::string& line, double& outWeight);
 };
 
 #endif // LOG_PARSER_H

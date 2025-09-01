@@ -1,9 +1,15 @@
+// src/controller/ActionHandler.cpp
+
 #include "ActionHandler.hpp"
-#include "common/TxtFileReader.hpp" // **新增**: 引入 TxtFileReader 头文件
+#include "common/TxtFileReader.hpp"
+// [MODIFIED] 引入新的 JsonFormatter
+#include "reprocessor/log_formatter/JsonFormatter.hpp" 
 #include <iostream>
 #include <fstream>
 #include <filesystem>
 #include <vector>
+#include <map>
+#include <algorithm>
 
 namespace fs = std::filesystem;
 
@@ -79,7 +85,7 @@ bool ActionHandler::processFile(const std::string& logFilePath, const AppConfig&
     std::cout << "Data processed successfully." << std::endl;
 
     // 4. 将格式化后的字符串写入文件 (逻辑简化)
-    std::cout << "Grouping data by type and writing to separate files..." << std::endl;
+    std::cout << "Grouping data by type and writing to separate JSON files..." << std::endl;
 
     // 按类型对数据进行分组 (不变)
     std::map<std::string, std::vector<DailyData>> dataByType;
@@ -98,12 +104,12 @@ bool ActionHandler::processFile(const std::string& logFilePath, const AppConfig&
 
     // 写入文件到对应子文件夹 (路径逻辑修改)
     try {
-        const std::string output_dir_base = "reprocessed";
-        // 使用新的 base_path 来构建输出路径
+        const std::string output_dir_base = "reprocessed_json";
         fs::path reprocessed_base_path = fs::path(config.base_path) / output_dir_base;
 
         fs::path input_path(logFilePath);
-        std::string base_filename = input_path.stem().string() + "_reprocessed.txt";
+        // [MODIFIED] 修改输出文件名和扩展名
+        std::string base_filename = input_path.stem().string() + "_reprocessed.json";
 
         for (const auto& [type, typeData] : dataByType) {
             if (typeData.empty()) continue;
@@ -112,7 +118,9 @@ bool ActionHandler::processFile(const std::string& logFilePath, const AppConfig&
             fs::create_directories(type_specific_path);
 
             fs::path output_filepath = type_specific_path / base_filename;
-            std::string outputContent = reprocessor_.formatDataToString(typeData);
+            
+            // [MODIFIED] 调用新的 JsonFormatter
+            std::string outputContent = JsonFormatter::format(typeData);
 
             std::cout << "Writing data for type '" << type << "' to '" << output_filepath.string() << "'..." << std::endl;
             if (!writeStringToFile(output_filepath.string(), outputContent)) {

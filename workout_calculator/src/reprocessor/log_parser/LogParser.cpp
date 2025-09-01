@@ -1,3 +1,5 @@
+// src/reprocessor/log_parser/LogParser.cpp
+
 #include "LogParser.hpp"
 #include <fstream>
 #include <sstream>
@@ -10,93 +12,95 @@ const std::vector<DailyData>& LogParser::getParsedData() const {
     return allDailyData;
 }
 
-bool LogParser::parseFile(const std::string& filePath) {
-    std::ifstream file(filePath);
-    if (!file.is_open()) {
-        std::cerr << "Error: Could not open file " << filePath << std::endl;
-        return false;
-    }
-
-    allDailyData.clear(); // 开始新的解析前清空旧数据
-    std::string line;
-    DailyData currentDailyData;
-    bool newDate = true;
-    int lineCounter = 0; // 新增行号计数器
-
-    while (std::getline(file, line)) {
-        lineCounter++; // 每次读取新行时递增
-
-        // 移除字符串两端的空白字符
-        line.erase(0, line.find_first_not_of(" \t\n\r"));
-        line.erase(line.find_last_not_of(" \t\n\r") + 1);
-
-        if (line.empty()) {
-            continue; // 跳过空行
-        }
-
-        // 检查是否是日期行 (假设日期行是4位数字)
-        if (line.length() == 4 && std::all_of(line.begin(), line.end(), ::isdigit)) {
-            if (!currentDailyData.date.empty()) {
-                allDailyData.push_back(currentDailyData);
-            }
-            currentDailyData = DailyData();
-            currentDailyData.date = line;
-            newDate = true;
-        } 
-        // 否则认为是项目行或内容行
-        else {
-            if (currentDailyData.date.empty()) {
-                // 如果还没有日期就开始了项目，说明格式错误
-                std::cerr << "Error: Project line found before a date line at line " << lineCounter << "." << std::endl;
-                return false;
-            }
-            
-            // 奇数行（相对日期行后）为项目名
-            if(newDate)
-            {
-                ProjectData newProject;
-                newProject.projectName = line; // 直接存入原始项目名
-                newProject.line_number = lineCounter; // 赋值行号
-                currentDailyData.projects.push_back(newProject);
-                newDate = false;
-            }
-            // 偶数行为内容行
-            else
-            {
-                if (!currentDailyData.projects.empty()) {
-                    parseContentLine(line, currentDailyData.projects.back());
-                }
-                newDate = true;
-            }
-        }
-    }
-    
-    // 将最后一个日期的数据存入
-    if (!currentDailyData.date.empty()) {
-        allDailyData.push_back(currentDailyData);
-    }
-
-    file.close();
-    return true;
-}
-
-void LogParser::parseContentLine(const std::string& line, ProjectData& projectData) {
+// 内部辅助函数，现在返回一个SetData的向量
+std::vector<SetData> LogParser::parseContentLine(const std::string& line, double& outWeight) {
+    std::vector<SetData> sets;
     std::stringstream ss(line);
     char plusSign;
     ss >> plusSign; // 读取'+'
-    ss >> projectData.weight; // 读取重量
+    ss >> outWeight; // 读取重量
 
     std::string repsPart;
     std::getline(ss, repsPart); // 读取剩余的部分，即次数
 
-    // 移除repsPart中的空格
     repsPart.erase(std::remove_if(repsPart.begin(), repsPart.end(), ::isspace), repsPart.end());
 
     std::stringstream reps_ss(repsPart);
     std::string rep_token;
     while(std::getline(reps_ss, rep_token, '+')) {
         if (!rep_token.empty()) {
-            projectData.reps.push_back(std::stoi(rep_token));
+            SetData currentSet;
+            currentSet.reps = std::stoi(rep_token);
+            // 其他字段 (weight, setNumber) 在主循环中填充
+            sets.push_back(currentSet);
         }
     }
+    return sets;
+}
+
+bool LogParser::parseFile(const std::string& filePath) {
+    std::ifstream file(filePath);
+    if (!file.is_open()) {
+        std::cerr << "Error: [LogParser] Could not open file " << filePath << std::endl;
+        return false;
+    }
+
+    allDailyData.clear();
+    std::string line;
+    DailyData currentDailyData;
+    int lineCounter = 0;
+    
+    // 追踪当前项目，以便向其追加数据
+    ProjectData* currentProject = nullptr; 
+
+    while (std::getline(file, line)) {
+        lineCounter++;
+        line.erase(0, line.find_first_not_of(" \t\n\r"));
+        line.erase(line.find_last_not_of(" \t\n\r") + 1);
+
+        if (line.empty()) continue;
+
+        // 检查是否是日期行
+        if (line.length() == 4 && std::all_of(line.begin(), line.end(), ::isdigit)) {
+            if (!currentDailyData.date.empty()) {
+                allDailyData.push_back(currentDailyData);
+            }
+            currentDailyData = DailyData();
+            currentDailyData.date = line;
+            currentProject = nullptr; // 新的一天，重置当前项目指针
+        } 
+        // 检查是否是内容行
+        else if (line[0] == '+') {
+            if (!currentProject) {
+                std::cerr << "Error: [LogParser] Content line found without a preceding project name at line " << lineCounter << "." << std::endl;
+                return false;
+            }
+            double weight;
+            std::vector<SetData> parsedSets = parseContentLine(line, weight);
+            for (auto& set : parsedSets) {
+                set.weight = weight;
+                // 关键：组号是连续递增的
+                set.setNumber = static_cast<int>(currentProject->sets.size()) + 1;
+                currentProject->sets.push_back(set);
+            }
+        }
+        // 否则认为是项目名称行
+        else {
+            if (currentDailyData.date.empty()) {
+                std::cerr << "Error: [LogParser] Project name found before a date line at line " << lineCounter << "." << std::endl;
+                return false;
+            }
+            currentDailyData.projects.emplace_back(); // 创建一个新的 ProjectData
+            currentProject = &currentDailyData.projects.back(); // 指向这个新创建的 Project
+            currentProject->projectName = line;
+            currentProject->line_number = lineCounter;
+        }
+    }
+    
+    if (!currentDailyData.date.empty()) {
+        allDailyData.push_back(currentDailyData);
+    }
+
+    file.close();
+    return true;
 }

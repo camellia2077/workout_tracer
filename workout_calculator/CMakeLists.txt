@@ -8,6 +8,14 @@ project(WorkoutParser VERSION 1.0 LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+# --- 强制开启颜色输出 ---
+# 为 Ninja 和 Make 等构建工具开启颜色
+set(CMAKE_COLOR_MAKEFILE ON)
+# 为 GCC 和 Clang 等编译器开启诊断颜色
+if(NOT MSVC)
+    set(CMAKE_CXX_DIAGNOSTICS_COLOR ALWAYS)
+endif()
+
 # --- 自动启用 ccache (如果可用) ---
 find_program(CCACHE_FOUND ccache)
 if(CCACHE_FOUND)
@@ -38,7 +46,8 @@ set(SHARED_SOURCES
     src/common/TxtFileReader.cpp
     # Reprocessor sources
     src/reprocessor/date_processor/DateProcessor.cpp
-    src/reprocessor/log_formatter/LogFormatter.cpp
+
+    src/reprocessor/log_formatter/JsonFormatter.cpp
     src/reprocessor/log_parser/LogParser.cpp
     src/reprocessor/name_mapper/ProjectNameMapper.cpp
     src/reprocessor/validator/Validator.cpp

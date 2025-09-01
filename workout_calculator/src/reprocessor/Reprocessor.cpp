@@ -76,7 +76,3 @@ void Reprocessor::processData(std::vector<DailyData>& data, std::optional<int> s
         }
     }
 }
-
-std::string Reprocessor::formatDataToString(const std::vector<DailyData>& processedData) {
-    return LogFormatter::format(processedData);
-}
