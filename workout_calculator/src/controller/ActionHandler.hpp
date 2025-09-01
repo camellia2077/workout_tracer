@@ -17,11 +17,10 @@ enum class ActionType {
 
 struct AppConfig {
     ActionType action;
-    // 对于 Export 操作，此路径将不被使用
     std::string log_filepath;      
     std::string mapping_path;
     std::string base_path;
-    std::optional<int> specified_year;
+    // [REMOVED] specified_year 已被移除
 };
 
 class ActionHandler {

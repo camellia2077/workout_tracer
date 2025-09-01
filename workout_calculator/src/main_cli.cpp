@@ -21,11 +21,10 @@ void printUsage(const char* programName) {
     std::cerr << "  validate <path>        Only validate the log file format." << std::endl;
     std::cerr << "  convert <path>         Convert the log file to JSON format." << std::endl;
     std::cerr << "  insert <path>          Insert JSON files into the database." << std::endl;
-    // [NEW] 添加了 export 命令
     std::cerr << "  export                 Export all data from the database to Markdown files." << std::endl;
     std::cerr << std::endl;
     std::cerr << "Options:" << std::endl;
-    std::cerr << "  -y, --year <year>      (For 'convert') Specify a 4-digit year." << std::endl;
+    // [REMOVED] 年份选项已被移除
     std::cerr << "  -h, --help             Show this help message and exit." << std::endl;
 }
 
@@ -56,19 +55,12 @@ std::optional<AppConfig> parseCommandLine(int argc, char* argv[]) {
         if (command == "convert") config.action = ActionType::Convert;
         if (command == "insert") config.action = ActionType::Insert;
 
-        // 解析选项
-        for (size_t i = 2; i < args.size(); ++i) {
-            if ((args[i] == "-y" || args[i] == "--year") && i + 1 < args.size()) {
-                if (config.action != ActionType::Convert) {
-                    std::cerr << "Error: --year option is only valid for the 'convert' command." << std::endl;
-                    return std::nullopt;
-                }
-                config.specified_year = std::stoi(args[++i]);
-            } else {
-                std::cerr << "Error: Unknown or invalid argument '" << args[i] << "'" << std::endl;
-                return std::nullopt;
-            }
+        // [REMOVED] 解析年份选项的逻辑已被移除
+        if (args.size() > 2) {
+            std::cerr << "Error: Unknown or invalid argument '" << args[2] << "'" << std::endl;
+            return std::nullopt;
         }
+
     } else if (command == "-h" || command == "--help") {
         printUsage(argv[0]);
         return std::nullopt;

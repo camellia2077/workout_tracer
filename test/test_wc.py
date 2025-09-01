@@ -21,13 +21,14 @@ INPUT_DIR = r"C:\Computer\my_github\github_cpp\workout_calculator\RECORD"
 EXE_NAME = 'workout_tracker_cli.exe'
 # 定义配置文件名
 CONFIG_NAME = 'mapping.json'
-# [MODIFIED] 更新数据库名称以匹配硬编码的值
+# 定义数据库名
 DB_NAME = 'workout_logs.sqlite3'
 
-# 定义需要清理的项
+# [MODIFIED] 定义需要清理的项
 DIRS_TO_DELETE = [
     'test_output',
-    'reprocessed_json' 
+    'reprocessed_json',
+    'output_file' # 新增
 ]
 FILES_TO_DELETE = [
     EXE_NAME, 
@@ -156,7 +157,7 @@ def run_validation_test(base_dir):
     output_dir = os.path.join(base_dir, 'test_output')
     os.makedirs(output_dir, exist_ok=True)
     
-    command_args = [INPUT_DIR, "validate"]
+    command_args = ["validate", INPUT_DIR]
     return execute_command(exe_path, command_args, "validation_test.log", output_dir)
 
 def run_conversion_test(base_dir):
@@ -166,7 +167,7 @@ def run_conversion_test(base_dir):
     output_dir = os.path.join(base_dir, 'test_output')
     os.makedirs(output_dir, exist_ok=True)
     
-    command_args = [INPUT_DIR, "convert", "--year", "2025"]
+    command_args = ["convert", INPUT_DIR]
     return execute_command(exe_path, command_args, "conversion_test.log", output_dir)
 
 def run_insertion_test(base_dir):
@@ -181,9 +182,18 @@ def run_insertion_test(base_dir):
         print(f"  {RED}错误: 未找到 'reprocessed_json' 目录。转换步骤可能已失败。{RESET}")
         return False
         
-    # [MODIFIED] 移除了 "--db" 参数，因为程序现在硬编码了数据库路径
-    command_args = [json_input_dir, "insert"]
+    command_args = ["insert", json_input_dir]
     return execute_command(exe_path, command_args, "insertion_test.log", output_dir)
+
+def run_export_test(base_dir):
+    """[NEW] 执行'export'命令的测试。"""
+    print(f"{CYAN}--- 6. Running Report Export Test ---{RESET}")
+    exe_path = os.path.join(base_dir, EXE_NAME)
+    output_dir = os.path.join(base_dir, 'test_output')
+    os.makedirs(output_dir, exist_ok=True)
+    
+    command_args = ["export"]
+    return execute_command(exe_path, command_args, "export_test.log", output_dir)
 
 # ===================================================================
 # 主函数
@@ -217,9 +227,13 @@ def main():
     if not run_insertion_test(script_dir):
         print(f"\n{RED}❌ 数据库插入测试失败。请检查 'test_output/insertion_test.log' 获取详情。{RESET}")
         sys.exit(1)
+        
+    if not run_export_test(script_dir):
+        print(f"\n{RED}❌ 报告导出测试失败。请检查 'test_output/export_test.log' 获取详情。{RESET}")
+        sys.exit(1)
 
     print(f"\n{GREEN}✅ 所有测试步骤成功完成!{RESET}")
-    print(f"{GREEN}   请检查 'reprocessed_json' 目录和 '{DB_NAME}' 文件以验证最终结果。{RESET}")
+    print(f"{GREEN}   请检查 'output_file/md' 目录以验证最终报告。{RESET}")
 
 if __name__ == '__main__':
     main()

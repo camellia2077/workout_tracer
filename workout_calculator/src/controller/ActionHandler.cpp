@@ -48,7 +48,8 @@ bool ActionHandler::run(const AppConfig& config) {
                 if (!reprocessor_.validate(filePath)) {
                     std::cerr << "Validation failed, skipping conversion." << std::endl;
                 } else {
-                    auto processedDataOpt = reprocessor_.convert(filePath, config.specified_year);
+                    // [MODIFIED] 调用 convert 不再需要年份参数
+                    auto processedDataOpt = reprocessor_.convert(filePath);
                     if (processedDataOpt.has_value() && !processedDataOpt.value().empty()) {
                         try {
                             std::map<std::string, std::vector<DailyData>> dataByType;
