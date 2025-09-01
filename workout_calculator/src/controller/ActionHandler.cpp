@@ -6,6 +6,7 @@
 #include "reprocessor/log_formatter/JsonFormatter.hpp" 
 #include "db/DbManager.hpp"
 #include "db/DbInsertor.hpp"
+#include "report/ReportGenerator.hpp" // [NEW] 引入 ReportGenerator
 #include <iostream>
 #include <fstream>
 #include <filesystem>
@@ -104,7 +105,6 @@ bool ActionHandler::run(const AppConfig& config) {
     } else if (config.action == ActionType::Insert) {
         std::cout << "Performing database insertion..." << std::endl;
         
-        // [MODIFIED] 数据库路径现在是硬编码的，并基于程序的根目录
         fs::path db_path = fs::path(config.base_path) / "workout_logs.sqlite3";
         DbManager dbManager(db_path.string());
 
@@ -133,6 +133,31 @@ bool ActionHandler::run(const AppConfig& config) {
         }
         std::cout << "\nDatabase insertion complete. " << successCount << " of " << jsonFiles.size() << " files inserted successfully." << std::endl;
         return successCount == jsonFiles.size();
+
+    } else if (config.action == ActionType::Export) {
+        std::cout << "Performing report export from database..." << std::endl;
+
+        fs::path db_path = fs::path(config.base_path) / "workout_logs.sqlite3";
+        if (!fs::exists(db_path)) {
+            std::cerr << "Error: Database file not found at " << db_path.string() << std::endl;
+            std::cerr << "Please run the 'insert' command first to create and populate the database." << std::endl;
+            return false;
+        }
+
+        DbManager dbManager(db_path.string());
+        if (!dbManager.open()) {
+            return false;
+        }
+        
+        fs::path output_dir = fs::path(config.base_path) / "output_file" / "md";
+        
+        if (ReportGenerator::generate_markdown_files(dbManager.getConnection(), output_dir.string())) {
+            std::cout << "\nReport export completed successfully." << std::endl;
+            return true;
+        } else {
+            std::cerr << "\nReport export failed." << std::endl;
+            return false;
+        }
     }
     
     return false;

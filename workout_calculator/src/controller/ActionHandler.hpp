@@ -7,19 +7,21 @@
 #include <string>
 #include <optional>
 
+// [MODIFIED] 添加了 Export 动作
 enum class ActionType {
     Validate,
     Convert,
-    Insert
+    Insert,
+    Export
 };
 
 struct AppConfig {
     ActionType action;
-    std::string log_filepath;      // 日志文件/目录 或 reprocessed_json 目录的路径
+    // 对于 Export 操作，此路径将不被使用
+    std::string log_filepath;      
     std::string mapping_path;
     std::string base_path;
     std::optional<int> specified_year;
-    // [REMOVED] db_path 字段已被移除
 };
 
 class ActionHandler {

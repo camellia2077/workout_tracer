@@ -12,73 +12,70 @@
 #endif
 
 void printUsage(const char* programName) {
-    std::cerr << "Usage: " << programName << " <path> <command> [options]" << std::endl;
+    std::cerr << "Usage: " << programName << " <command> [<path>] [options]" << std::endl;
     std::cerr << std::endl;
     std::cerr << "Description:" << std::endl;
-    std::cerr << "  Processes, validates, or inserts workout logs." << std::endl;
-    std::cerr << "  For 'validate' and 'convert', <path> is a .txt file or directory." << std::endl;
-    std::cerr << "  For 'insert', <path> is a .json file or a directory (e.g., 'reprocessed_json')." << std::endl;
+    std::cerr << "  Processes, validates, inserts, or exports workout logs." << std::endl;
     std::cerr << std::endl;
     std::cerr << "Commands:" << std::endl;
-    std::cerr << "  validate               Only validate the log file format." << std::endl;
-    std::cerr << "  convert                Convert the log file to JSON format." << std::endl;
-    // [MODIFIED] 简化了 insert 命令的描述
-    std::cerr << "  insert                 Insert reprocessed JSON files into the database (workout_logs.sqlite3)." << std::endl;
+    std::cerr << "  validate <path>        Only validate the log file format." << std::endl;
+    std::cerr << "  convert <path>         Convert the log file to JSON format." << std::endl;
+    std::cerr << "  insert <path>          Insert JSON files into the database." << std::endl;
+    // [NEW] 添加了 export 命令
+    std::cerr << "  export                 Export all data from the database to Markdown files." << std::endl;
     std::cerr << std::endl;
     std::cerr << "Options:" << std::endl;
-    std::cerr << "  -y, --year <year>      (For 'convert') Specify a 4-digit year. Defaults to current." << std::endl;
-    // [REMOVED] --db 选项已被移除
+    std::cerr << "  -y, --year <year>      (For 'convert') Specify a 4-digit year." << std::endl;
     std::cerr << "  -h, --help             Show this help message and exit." << std::endl;
 }
 
 std::optional<AppConfig> parseCommandLine(int argc, char* argv[]) {
-    if (argc < 3) {
+    if (argc < 2) {
         printUsage(argv[0]);
         return std::nullopt;
     }
 
     AppConfig config;
     std::vector<std::string> args(argv + 1, argv + argc);
+    std::string command = args[0];
 
-    config.log_filepath = args[0];
-    std::string command = args[1];
+    if (command == "export") {
+        config.action = ActionType::Export;
+        if (args.size() > 1) { // export 命令不应有额外参数
+            std::cerr << "Error: 'export' command does not take any additional arguments." << std::endl;
+            return std::nullopt;
+        }
+    } 
+    else if (command == "validate" || command == "convert" || command == "insert") {
+        if (args.size() < 2) {
+            std::cerr << "Error: '" << command << "' command requires a <path> argument." << std::endl;
+            return std::nullopt;
+        }
+        config.log_filepath = args[1];
+        if (command == "validate") config.action = ActionType::Validate;
+        if (command == "convert") config.action = ActionType::Convert;
+        if (command == "insert") config.action = ActionType::Insert;
 
-    if (command == "validate") {
-        config.action = ActionType::Validate;
-    } else if (command == "convert") {
-        config.action = ActionType::Convert;
-    } else if (command == "insert") {
-        config.action = ActionType::Insert;
+        // 解析选项
+        for (size_t i = 2; i < args.size(); ++i) {
+            if ((args[i] == "-y" || args[i] == "--year") && i + 1 < args.size()) {
+                if (config.action != ActionType::Convert) {
+                    std::cerr << "Error: --year option is only valid for the 'convert' command." << std::endl;
+                    return std::nullopt;
+                }
+                config.specified_year = std::stoi(args[++i]);
+            } else {
+                std::cerr << "Error: Unknown or invalid argument '" << args[i] << "'" << std::endl;
+                return std::nullopt;
+            }
+        }
+    } else if (command == "-h" || command == "--help") {
+        printUsage(argv[0]);
+        return std::nullopt;
     } else {
         std::cerr << "Error: Unknown command '" << command << "'" << std::endl;
         printUsage(argv[0]);
         return std::nullopt;
-    }
-
-    // Parse options
-    for (size_t i = 2; i < args.size(); ++i) {
-        if (args[i] == "-h" || args[i] == "--help") {
-            printUsage(argv[0]);
-            return std::nullopt; 
-        } 
-        else if ((args[i] == "-y" || args[i] == "--year") && i + 1 < args.size()) {
-            if (config.action != ActionType::Convert) {
-                std::cerr << "Error: --year option is only valid for the 'convert' command." << std::endl;
-                return std::nullopt;
-            }
-            try {
-                config.specified_year = std::stoi(args[++i]);
-            } catch (const std::exception& e) {
-                std::cerr << "Error: Invalid year format provided." << std::endl;
-                return std::nullopt;
-            }
-        }
-        // [REMOVED] --db 的解析逻辑已被移除
-        else {
-            std::cerr << "Error: Unknown or invalid argument '" << args[i] << "'" << std::endl;
-            printUsage(argv[0]);
-            return std::nullopt;
-        }
     }
 
     std::filesystem::path exe_path = argv[0];

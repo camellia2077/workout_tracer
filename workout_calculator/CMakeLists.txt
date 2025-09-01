@@ -1,4 +1,6 @@
-# 设置CMake最低版本要求 (为了 target_precompile_headers 最好是 3.16+)
+# CMakeLists.txt
+
+# 设置CMake最低版本要求
 cmake_minimum_required(VERSION 3.16)
 
 # 定义项目名称、版本和语言
@@ -64,8 +66,13 @@ set(CONTROLLER_SOURCES
 # --- DB 模块 ---
 set(DB_SOURCES
     src/db/DbInsertor.cpp
-    # [NEW] 添加新的 DbManager 源文件
     src/db/DbManager.cpp
+)
+
+# --- Report 模块 ---
+# [FIXED] 修正了这里的源文件路径
+set(REPORT_SOURCES
+    src/report/ReportGenerator.cpp
 )
 
 # --- 整合所有共享源文件 ---
@@ -74,6 +81,7 @@ set(SHARED_SOURCES
     ${REPROCESSOR_SOURCES}
     ${CONTROLLER_SOURCES}
     ${DB_SOURCES}
+    ${REPORT_SOURCES}
 )
 
 # ===================================================================
