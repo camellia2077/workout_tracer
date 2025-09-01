@@ -1,41 +1,64 @@
+# build.py
+
 import os
 import subprocess
 import sys
-import time  # 1. 导入 time 模块
+import time
 from pathlib import Path
 
+# ===================================================================
+# 1. 控制台颜色定义
+# ===================================================================
+class Color:
+    HEADER = '\033[95m'
+    OKGREEN = '\033[92m'
+    FAIL = '\033[91m'
+    ENDC = '\033[0m'
+    BOLD = '\033[1m'
+
+def print_header(message):
+    """打印带有彩色标题格式的日志消息"""
+    print(f"\n{Color.HEADER}{Color.BOLD}--- {message} ---{Color.ENDC}")
+
+# ===================================================================
+# 核心函数
+# ===================================================================
+
 def run_command(command, cwd):
-    """Executes a command in a specified directory and checks for errors."""
+    """在一个指定的目录中执行命令，并检查错误。"""
     print(f"--- Running command: {' '.join(command)} in '{cwd}'")
     try:
-        is_windows = sys.platform.startswith('win')
-        subprocess.run(command, cwd=cwd, check=True, shell=is_windows)
+        # 直接执行命令，让子进程的彩色输出流到当前终端
+        subprocess.run(command, cwd=cwd, check=True)
     except (subprocess.CalledProcessError, FileNotFoundError) as e:
-        print(f"!!! Error executing command: {' '.join(command)}", file=sys.stderr)
-        print(f"!!! Error: {e}", file=sys.stderr)
+        print(f"{Color.FAIL}!!! Error executing command: {' '.join(command)}{Color.ENDC}", file=sys.stderr)
+        print(f"{Color.FAIL}!!! Error: {e}{Color.ENDC}", file=sys.stderr)
         sys.exit(1)
 
 def main():
-    """Main function to configure and build the project."""
-    # 2. 在 main 函数开始时记录开始时间
+    """配置并构建项目的主函数。"""
     start_time = time.monotonic()
 
     project_root = Path(__file__).parent.resolve()
+    build_dir = project_root / "build"
+    
+    # 在Windows上启用ANSI颜色代码
+    if sys.platform.startswith('win'):
+        os.system('color')
+        
     os.chdir(project_root)
     print(f"Switched to script directory: {project_root}")
 
-    build_dir = project_root / "build"
-
     # 准备构建目录
-    print(f"\n--- Preparing build directory ---")
+    print_header("Preparing build directory")
     if not build_dir.exists():
         print(f"Build directory '{build_dir.name}' not found. Creating it...")
         build_dir.mkdir()
     else:
         print(f"Using existing build directory '{build_dir.name}'.")
 
-    # 配置项目
-    print(f"\n--- Configuring project with CMake+Ninja for Release build ---")
+    # 配置项目 - 确保使用Ninja
+    print_header("Configuring project with CMake+Ninja for Release build")
     cmake_configure_command = [
         "cmake",
         "..",
@@ -45,7 +68,8 @@ def main():
     run_command(cmake_configure_command, cwd=build_dir)
 
     # 编译项目
-    print(f"\n--- Compiling project in Release mode with Ninja ---")
+    print_header("Compiling project in Release mode with Ninja")
+    # cmake --build . 会自动使用上面配置的Ninja
     cmake_build_command = [
         "cmake",
         "--build", ".",
@@ -53,13 +77,12 @@ def main():
     ]
     run_command(cmake_build_command, cwd=build_dir)
 
-    print(f"\n--- Build process finished successfully! ---")
-    print(f"Executables are located at: {build_dir}")
-
-    # 3. 计算并打印总耗时
     end_time = time.monotonic()
     duration = end_time - start_time
-    print(f"\n--- Total build time: {duration:.2f} seconds ---")
+    
+    print_header("Build process finished successfully!")
+    print(f"{Color.OKGREEN}Executables are located at: {build_dir}{Color.ENDC}")
+    print(f"{Color.OKGREEN}Total build time: {duration:.2f} seconds{Color.ENDC}")
 
 if __name__ == "__main__":
     main()
