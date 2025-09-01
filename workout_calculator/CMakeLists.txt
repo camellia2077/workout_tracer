@@ -9,9 +9,7 @@ set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # --- 强制开启颜色输出 ---
-# 为 Ninja 和 Make 等构建工具开启颜色
 set(CMAKE_COLOR_MAKEFILE ON)
-# 为 GCC 和 Clang 等编译器开启诊断颜色
 if(NOT MSVC)
     set(CMAKE_CXX_DIAGNOSTICS_COLOR ALWAYS)
 endif()
@@ -38,24 +36,44 @@ find_package(SQLite3 REQUIRED)
 set(CONFIG_FILE_SOURCE ${CMAKE_CURRENT_SOURCE_DIR}/src/config/mapping.json)
 
 # ===================================================================
-# 源文件列表
+# 源文件列表 (按模块组织)
 # ===================================================================
-set(SHARED_SOURCES
-    # Common sources
+
+# --- Common 模块 ---
+set(COMMON_SOURCES
     src/common/JsonReader.cpp
     src/common/TxtFileReader.cpp
-    # Reprocessor sources
-    src/reprocessor/date_processor/DateProcessor.cpp
+)
 
+# --- Reprocessor 模块 ---
+set(REPROCESSOR_SOURCES
+    src/reprocessor/date_processor/DateProcessor.cpp
     src/reprocessor/log_formatter/JsonFormatter.cpp
     src/reprocessor/log_parser/LogParser.cpp
     src/reprocessor/name_mapper/ProjectNameMapper.cpp
     src/reprocessor/validator/Validator.cpp
     src/reprocessor/volume_calculator/VolumeCalculator.cpp
     src/reprocessor/Reprocessor.cpp
+)
 
-    # Controller sources
+# --- Controller 模块 ---
+set(CONTROLLER_SOURCES
     src/controller/ActionHandler.cpp
+)
+
+# --- DB 模块 ---
+set(DB_SOURCES
+    src/db/DbInsertor.cpp
+    # [NEW] 添加新的 DbManager 源文件
+    src/db/DbManager.cpp
+)
+
+# --- 整合所有共享源文件 ---
+set(SHARED_SOURCES
+    ${COMMON_SOURCES}
+    ${REPROCESSOR_SOURCES}
+    ${CONTROLLER_SOURCES}
+    ${DB_SOURCES}
 )
 
 # ===================================================================
@@ -75,8 +93,6 @@ function(configure_workout_target TARGET_NAME ENTRY_POINT_FILE)
     )
 
     # --- 添加预编译头文件 ---
-    # 这是关键！CMake会自动处理PCH的创建和使用
-    # 它会在编译时自动将 "pch.hpp" 包含到所有源文件中
     target_precompile_headers(
         ${TARGET_NAME}
         PRIVATE
@@ -87,7 +103,7 @@ function(configure_workout_target TARGET_NAME ENTRY_POINT_FILE)
         ${TARGET_NAME}
         PRIVATE
         nlohmann_json::nlohmann_json
-        # SQLite::SQLite3
+        SQLite::SQLite3
     )
 
     add_custom_command(

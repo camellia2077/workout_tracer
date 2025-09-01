@@ -7,18 +7,21 @@
 #include <string>
 #include <optional>
 
-// [MODIFIED] 使用枚举来明确表示操作类型
+// [MODIFIED] 添加了 Insert 动作
 enum class ActionType {
     Validate,
-    Convert
+    Convert,
+    Insert
 };
 
 struct AppConfig {
-    ActionType action;             // 要执行的操作
-    std::string log_filepath;      // 日志文件或目录的路径
-    std::string mapping_path;      // mapping.json 的路径
-    std::string base_path;         // 程序运行的基础路径
+    ActionType action;
+    std::string log_filepath;      // 日志文件/目录 或 reprocessed_json 目录的路径
+    std::string mapping_path;
+    std::string base_path;
     std::optional<int> specified_year;
+    // [NEW] 添加数据库路径配置
+    std::string db_path;
 };
 
 class ActionHandler {
