@@ -30,10 +30,13 @@ sqlite3* DbManager::getConnection() const {
     return db_;
 }
 
+// [MODIFIED] 更新了 training_logs 表的结构
 bool DbManager::createTables() {
     const char* sql = 
         "CREATE TABLE IF NOT EXISTS training_logs ("
         "  id INTEGER PRIMARY KEY AUTOINCREMENT,"
+        "  cycle_id TEXT NOT NULL,"            // <<< 新增: 训练周期的唯一ID
+        "  total_days INTEGER NOT NULL,"       // <<< 新增: 该周期的总训练天数
         "  date TEXT NOT NULL,"
         "  exercise_name TEXT NOT NULL,"
         "  exercise_type TEXT NOT NULL,"
