@@ -50,7 +50,9 @@ set(COMMON_SOURCES
 # --- Reprocessor 模块 ---
 set(REPROCESSOR_SOURCES
     src/reprocessor/date_processor/DateProcessor.cpp
+    
     src/reprocessor/log_formatter/JsonFormatter.cpp
+
     src/reprocessor/log_parser/LogParser.cpp
     src/reprocessor/name_mapper/ProjectNameMapper.cpp
     src/reprocessor/validator/Validator.cpp

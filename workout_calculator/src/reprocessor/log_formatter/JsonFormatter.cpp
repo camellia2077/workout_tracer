@@ -2,6 +2,7 @@
 
 #include "JsonFormatter.hpp"
 #include "nlohmann/json.hpp"
+#include <string> // [ADD] 引入 string 以便使用 to_string
 
 // [MODIFIED] 使用 nlohmann::ordered_json 来保证键的顺序
 using json = nlohmann::ordered_json;
@@ -40,20 +41,28 @@ void to_json(json& j, const DailyData& d) {
     };
 }
 
+// [MODIFIED] 重写 format 函数以实现更标准的 JSON 结构
 std::string JsonFormatter::format(const std::vector<DailyData>& processedData) {
     if (processedData.empty() || processedData[0].projects.empty()) {
         return "{}";
     }
     
-    // [MODIFIED] 使用 ordered_json 来确保键的插入顺序
+    // 1. 获取生成周期ID和统计信息所需的数据
+    const std::string& first_date = processedData[0].date;
+    const std::string& type = processedData[0].projects[0].type;
+    size_t total_days = processedData.size();
+
+    // 2. 创建周期ID
+    std::string cycle_id = first_date + "-" + type;
+
+    // 3. 构建新的、结构固定的JSON对象
     json j;
 
-    // 1. 首先设置顶层 'type'
-    j["type"] = processedData[0].projects[0].type;
-
-    // 2. 然后创建 'sessions' 数组
+    j["cycle_id"] = cycle_id; // <<< 推荐的修改
+    j["type"] = type;
+    j["total_days"] = total_days;
     j["sessions"] = processedData;
 
-    // 3. 返回格式化后的字符串
+    // 4. 返回格式化后的字符串
     return j.dump(4);
 }
