@@ -14,36 +14,17 @@ BUILD_DIR = r"C:\Computer\my_github\github_cpp\workout_calculator\workout_calcul
 # [重要] 存放原始训练日志 (.txt 文件) 的目录
 INPUT_DIR = r"C:\Computer\my_github\github_cpp\workout_calculator\RECORD"
 
-# [重要] 测试输出目录
-# -> 如果设置为一个路径 (例如 r"C:\temp\test_run")，所有输出将保存在那里。
+# [重要] 测试输出的根目录
+# -> 如果设置为一个路径 (例如 r"C:\temp\my_tests")，所有测试输出将保存在该路径下。
 # -> 如果设置为空字符串 ""，所有输出将保存在脚本当前所在的目录。
-TEST_OUTPUT_DIR = r"C:\Computer\my_github\github_cpp\workout_calculator\mytest"
+TEST_OUTPUT_PARENT_DIR = r"C:\Computer\my_github\github_cpp\workout_calculator\mytest"
+
+# [MODIFIED] 定义所有测试产物的总目录名。清理时会直接删除这个目录。
+TEST_OUTPUT_DIR_NAME = 'test_output'
 
 # ===================================================================
-# 文件名配置
+# 文件名配置 (保持不变)
 # ===================================================================
-
-# 可执行文件名
 EXE_NAME = 'workout_tracker_cli.exe'
-# 映射文件名
 CONFIG_NAME = 'mapping.json'
-# 数据库文件名
 DB_NAME = 'workout_logs.sqlite3'
-
-# ===================================================================
-# 清理任务配置
-# ===================================================================
-
-# 在清理阶段需要删除的目录列表
-DIRS_TO_DELETE = [
-    'test_output',
-    'reprocessed_json',
-    'output_file'
-]
-
-# 在清理阶段需要删除的文件列表
-FILES_TO_DELETE = [
-    EXE_NAME, 
-    CONFIG_NAME,
-    DB_NAME 
-]

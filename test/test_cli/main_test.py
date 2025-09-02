@@ -3,7 +3,6 @@
 import os
 import sys
 
-# 只在主模块中导入配置
 import config
 from test_cleanup import Cleaner
 from test_runner import TestRunner
@@ -35,18 +34,21 @@ def main():
 
     script_dir = os.path.dirname(os.path.abspath(__file__))
     
-    if config.TEST_OUTPUT_DIR:
-        work_dir = os.path.abspath(config.TEST_OUTPUT_DIR)
-        os.makedirs(work_dir, exist_ok=True)
+    # [MODIFIED] 决定测试输出的父目录
+    if config.TEST_OUTPUT_PARENT_DIR:
+        output_parent_dir = os.path.abspath(config.TEST_OUTPUT_PARENT_DIR)
     else:
-        work_dir = script_dir
+        output_parent_dir = script_dir
+        
+    # [MODIFIED] 组装最终的、统一的测试运行目录
+    test_run_dir = os.path.join(output_parent_dir, config.TEST_OUTPUT_DIR_NAME)
 
     print(f"\n{CYAN}========== Workout Tracker CLI Test Utility =========={RESET}")
-    print(f"测试输出目录: {work_dir}")
+    print(f"测试输出将全部保存在: {test_run_dir}")
     print(f"执行命令: '{command}'")
 
-    # [MODIFIED] 实例化 Cleaner 类并注入配置
-    cleaner = Cleaner(work_dir, config.DIRS_TO_DELETE, config.FILES_TO_DELETE)
+    # [MODIFIED] 实例化 Cleaner，目标是删除整个测试运行目录
+    cleaner = Cleaner(test_run_dir)
 
     if command == 'clean':
         if not cleaner.run():
@@ -59,14 +61,14 @@ def main():
             print(f"\n{RED}❌ 清理步骤失败，测试终止。{RESET}")
             sys.exit(1)
         
-        # [MODIFIED] 实例化 TestRunner 类并注入配置
-        runner = TestRunner(config, work_dir)
+        # [MODIFIED] 实例化 TestRunner，让它在专用的测试目录中工作
+        runner = TestRunner(config, test_run_dir)
         if not runner.run_all():
             print(f"\n{RED}❌ 测试流程失败，已终止。{RESET}")
             sys.exit(1)
 
         print(f"\n{GREEN}✅ 所有测试步骤成功完成!{RESET}")
-        print(f"{GREEN}   请检查 '{os.path.join(work_dir, 'output_file', 'md')}' 目录以验证最终报告。{RESET}")
+        print(f"{GREEN}   请检查 '{os.path.join(test_run_dir, 'output_file', 'md')}' 目录以验证最终报告。{RESET}")
 
     else:
         print(f"\n{RED}错误: 未知命令 '{command}'{RESET}")
