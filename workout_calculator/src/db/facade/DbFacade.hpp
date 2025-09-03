@@ -1,4 +1,4 @@
-// src/db/DbFacade.hpp
+// src/db/facade/DbFacade.hpp
 
 #ifndef DB_FACADE_H
 #define DB_FACADE_H

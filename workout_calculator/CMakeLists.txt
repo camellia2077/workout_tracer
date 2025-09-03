@@ -69,11 +69,11 @@ set(CONTROLLER_SOURCES
 
 # --- DB 模块 ---
 set(DB_SOURCES
-    src/db/DbFacade.cpp
+    src/db/facade/DbFacade.cpp
 
-    src/db/DbManager.cpp
+    src/db/manager/DbManager.cpp
 
-    src/db/TrainingDataInserter.cpp
+    src/db/inserter/DataInserter.cpp
     
 )
 

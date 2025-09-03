@@ -3,8 +3,8 @@
 #include "DatabaseHandler.hpp"
 #include "common/FileReader.hpp"
 #include "common/JsonReader.hpp"
-#include "db/DbManager.hpp"
-#include "db/DbFacade.hpp"  // Corrected header include
+#include "db/manager/DbManager.hpp"
+#include "db/facade/DbFacade.hpp"  // Corrected header include
 #include "report/facade/ReportFacade.hpp"
 #include <iostream>
 #include <filesystem>

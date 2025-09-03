@@ -1,7 +1,7 @@
 // src/db/DbFacade.cpp
 
 #include "DbFacade.hpp"
-#include "TrainingDataInserter.hpp"
+#include "db/inserter/DataInserter.hpp"
 #include <iostream>
 #include <stdexcept>
 
@@ -17,7 +17,7 @@ bool DbFacade::insertTrainingData(sqlite3* db, const nlohmann::json& jsonData) {
 
     try {
         // 2. 将具体工作委托给 Inserter
-        TrainingDataInserter inserter(db);
+        DataInserter inserter(db);
         inserter.insert(jsonData);
 
     } catch (const std::exception& e) {

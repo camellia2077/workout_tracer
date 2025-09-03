@@ -1,12 +1,12 @@
-// src/db/TrainingDataInserter.cpp
+// src/db/DataInserter.cpp
 
-#include "TrainingDataInserter.hpp"
+#include "db/inserter/DataInserter.hpp"
 #include <iostream>
 #include <stdexcept>
 
-TrainingDataInserter::TrainingDataInserter(sqlite3* db) : db_(db) {}
+DataInserter::DataInserter(sqlite3* db) : db_(db) {}
 
-bool TrainingDataInserter::insert(const nlohmann::json& jsonData) {
+bool DataInserter::insert(const nlohmann::json& jsonData) {
     const char* sql_insert_log = "INSERT INTO training_logs (cycle_id, total_days, date, exercise_name, exercise_type, total_volume) VALUES (?, ?, ?, ?, ?, ?);";
     const char* sql_insert_set = "INSERT INTO training_sets (log_id, set_number, weight, reps, volume) VALUES (?, ?, ?, ?, ?);";
     

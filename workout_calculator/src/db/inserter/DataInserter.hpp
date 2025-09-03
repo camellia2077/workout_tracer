@@ -1,4 +1,4 @@
-// src/db/TrainingDataInserter.hpp
+// src/db/DataInserter.hpp
 
 #ifndef TRAINING_DATA_INSERTER_H
 #define TRAINING_DATA_INSERTER_H
@@ -11,9 +11,9 @@
  * 此类封装了SQL语句准备、绑定和执行的具体细节，
  * 但不负责事务管理。
  */
-class TrainingDataInserter {
+class DataInserter {
 public:
-    explicit TrainingDataInserter(sqlite3* db);
+    explicit DataInserter(sqlite3* db);
 
     /**
      * @brief 执行插入操作。
