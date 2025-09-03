@@ -8,8 +8,8 @@
 # 核心路径配置
 # ===================================================================
 
-# [重要] C++ 项目编译后 workout_tracker_cli.exe 所在的构建目录
-BUILD_DIR = r"C:\Computer\my_github\github_cpp\workout_calculator\workout_calculator\workout_calculator\build"
+# C++ 项目编译后 workout_tracker_cli.exe 所在的构建目录
+BUILD_DIR = r"C:\Computer\my_github\github_cpp\workout_calculator\workout_calculator\main\build"
 
 # [重要] 存放原始训练日志 (.txt 文件) 的目录
 INPUT_DIR = r"C:\Computer\my_github\github_cpp\workout_calculator\RECORD"

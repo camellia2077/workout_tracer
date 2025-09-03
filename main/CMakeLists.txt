@@ -53,6 +53,7 @@ set(REPROCESSOR_SOURCES
     src/reprocessor/facade/Reprocessor.cpp
 
     # 预处理
+    src/reprocessor/preprocessor/Preprocessor.cpp
     src/reprocessor/preprocessor/date_processor/DateProcessor.cpp
     src/reprocessor/preprocessor/log_formatter/JsonFormatter.cpp
     src/reprocessor/preprocessor/log_parser/LogParser.cpp
@@ -61,6 +62,7 @@ set(REPROCESSOR_SOURCES
 
     # 验证
     src/reprocessor/validator/Validator.cpp
+    src/reprocessor/validator/LineValidator.cpp
     
 )
 
