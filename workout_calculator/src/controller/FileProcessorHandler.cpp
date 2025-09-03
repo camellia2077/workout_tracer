@@ -59,17 +59,14 @@ bool FileProcessorHandler::handle(const AppConfig& config) {
                             }
                         }
                         
-                        // 预处理后的文件，存储在程序根目录下的 reprocessed_json 文件夹中
                         const std::string output_dir_base = "reprocessed_json";
                         fs::path reprocessed_base_path = fs::path(config.base_path) / output_dir_base;
                         
-                        // 确保根目录存在
                         fs::create_directories(reprocessed_base_path);
 
                         std::string base_filename = fs::path(filePath).stem().string() + "_reprocessed.json";
 
                         for (const auto& [type, typeData] : dataByType) {
-                            // 在 reprocessed_json 文件夹下，再按类型创建子文件夹
                             fs::path type_specific_path = reprocessed_base_path / type;
                             fs::create_directories(type_specific_path);
                             
@@ -97,7 +94,7 @@ bool FileProcessorHandler::handle(const AppConfig& config) {
         }
 
         if (result) successCount++;
-        std::cout << "====================================\n" << std::endl;
+        std::cout << "====================================\\n" << std::endl;
     }
 
     std::cout << "Processing complete. " << successCount << " of " << filesToProcess.size() << " files handled successfully." << std::endl;

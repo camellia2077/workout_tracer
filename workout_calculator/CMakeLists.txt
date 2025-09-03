@@ -69,8 +69,12 @@ set(CONTROLLER_SOURCES
 
 # --- DB 模块 ---
 set(DB_SOURCES
-    src/db/DbInsertor.cpp
+    src/db/DbFacade.cpp
+
     src/db/DbManager.cpp
+
+    src/db/TrainingDataInserter.cpp
+    
 )
 
 # --- Report 模块 ---

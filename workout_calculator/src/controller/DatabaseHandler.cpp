@@ -4,7 +4,7 @@
 #include "common/FileReader.hpp"
 #include "common/JsonReader.hpp"
 #include "db/DbManager.hpp"
-#include "db/DbInsertor.hpp"
+#include "db/DbFacade.hpp"  // Corrected header include
 #include "report/facade/ReportFacade.hpp"
 #include <iostream>
 #include <filesystem>
@@ -34,7 +34,8 @@ bool DatabaseHandler::handle(const AppConfig& config) {
             std::cout << "--- Inserting file: " << jsonPath << " ---" << std::endl;
             auto jsonDataOpt = JsonReader::readFile(jsonPath);
             if (jsonDataOpt.has_value()) {
-                if (DbInsertor::insert_data(dbManager.getConnection(), jsonDataOpt.value())) {
+                // Using the new DbFacade for data insertion
+                if (DbFacade::insertTrainingData(dbManager.getConnection(), jsonDataOpt.value())) {
                     std::cout << "Successfully inserted data from " << jsonPath << std::endl;
                     successCount++;
                 } else {

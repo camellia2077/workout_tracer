@@ -1,3 +1,5 @@
 build/
 my_test/
 RECORD/
+.vscode/
+__pycache__/
