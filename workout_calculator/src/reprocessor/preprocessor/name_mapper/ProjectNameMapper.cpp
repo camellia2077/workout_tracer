@@ -1,6 +1,6 @@
 // src/reprocessor/name_mapper/ProjectNameMapper.cpp
 
-#include "reprocessor/name_mapper/ProjectNameMapper.hpp"
+#include "reprocessor/preprocessor/name_mapper/ProjectNameMapper.hpp"
 #include <iostream>
 
 // <<< 修改：适配新的 JSON 结构

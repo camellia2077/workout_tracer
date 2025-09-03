@@ -4,7 +4,7 @@
 #define FILE_PROCESSOR_HANDLER_H
 
 #include "ActionHandler.hpp"
-#include "reprocessor/Reprocessor.hpp"
+#include "reprocessor/facade/Reprocessor.hpp"
 
 // 这个类专门处理与原始日志文件相关的所有操作。
 

@@ -1,4 +1,4 @@
-// src/reprocessor/log_parser/LogParser.hpp
+// src/reprocessor/preprocessor/log_parser/LogParser.hpp
 
 #ifndef LOG_PARSER_H
 #define LOG_PARSER_H

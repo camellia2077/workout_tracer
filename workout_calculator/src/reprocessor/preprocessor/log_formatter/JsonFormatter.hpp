@@ -1,4 +1,4 @@
-// src/reprocessor/log_formatter/JsonFormatter.hpp
+// src/reprocessor/preprocessor/log_formatter/JsonFormatter.hpp
 
 #ifndef JSON_FORMATTER_H
 #define JSON_FORMATTER_H

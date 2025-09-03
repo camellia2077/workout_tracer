@@ -2,7 +2,7 @@
 
 #include "FileProcessorHandler.hpp"
 #include "common/FileReader.hpp"
-#include "reprocessor/log_formatter/JsonFormatter.hpp"
+#include "reprocessor/preprocessor/log_formatter/JsonFormatter.hpp"
 #include <iostream>
 #include <fstream>
 #include <filesystem>

@@ -49,15 +49,19 @@ set(COMMON_SOURCES
 
 # --- Reprocessor 模块 ---
 set(REPROCESSOR_SOURCES
-    src/reprocessor/date_processor/DateProcessor.cpp
-    
-    src/reprocessor/log_formatter/JsonFormatter.cpp
+    # 外观封装
+    src/reprocessor/facade/Reprocessor.cpp
 
-    src/reprocessor/log_parser/LogParser.cpp
-    src/reprocessor/name_mapper/ProjectNameMapper.cpp
+    # 预处理
+    src/reprocessor/preprocessor/date_processor/DateProcessor.cpp
+    src/reprocessor/preprocessor/log_formatter/JsonFormatter.cpp
+    src/reprocessor/preprocessor/log_parser/LogParser.cpp
+    src/reprocessor/preprocessor/name_mapper/ProjectNameMapper.cpp
+    src/reprocessor/preprocessor/volume_calculator/VolumeCalculator.cpp
+
+    # 验证
     src/reprocessor/validator/Validator.cpp
-    src/reprocessor/volume_calculator/VolumeCalculator.cpp
-    src/reprocessor/Reprocessor.cpp
+    
 )
 
 # --- Controller 模块 ---
@@ -78,7 +82,6 @@ set(DB_SOURCES
 )
 
 # --- Report 模块 ---
-# [FIXED] 修正了这里的源文件路径
 set(REPORT_SOURCES
     src/report/database/DatabaseManager.cpp
     src/report/formatter/MarkdownFormatter.cpp

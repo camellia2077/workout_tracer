@@ -1,14 +1,14 @@
 // src/reprocessor/Reprocessor.cpp
 
-#include "reprocessor/Reprocessor.hpp"
+#include "reprocessor/facade/Reprocessor.hpp"
 #include "common/JsonReader.hpp"
 #include "reprocessor/validator/Validator.hpp" // [FIX] 为 validate 添加头文件
 #include <iostream>
 
 // [FIX] 添加了缺失的头文件
-#include "reprocessor/date_processor/DateProcessor.hpp"
-#include "reprocessor/volume_calculator/VolumeCalculator.hpp"
-#include "reprocessor/name_mapper/ProjectNameMapper.hpp" 
+#include "reprocessor/preprocessor/date_processor/DateProcessor.hpp"
+#include "reprocessor/preprocessor/volume_calculator/VolumeCalculator.hpp"
+#include "reprocessor/preprocessor/name_mapper/ProjectNameMapper.hpp" 
 
 // [FIX] 添加 configure 函数的实现
 bool Reprocessor::configure(const std::string& mappingFilePath) {

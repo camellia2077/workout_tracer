@@ -1,4 +1,4 @@
-// src/reprocessor/Reprocessor.hpp
+// src/reprocessor/facade/Reprocessor.hpp
 
 #ifndef REPROCESSOR_H
 #define REPROCESSOR_H
@@ -9,8 +9,8 @@
 #include <vector>
 
 // [FIX] Added missing includes for LogParser and ProjectNameMapper
-#include "reprocessor/log_parser/LogParser.hpp"
-#include "reprocessor/name_mapper/ProjectNameMapper.hpp"
+#include "reprocessor/preprocessor/log_parser/LogParser.hpp"
+#include "reprocessor/preprocessor/name_mapper/ProjectNameMapper.hpp"
 
 class Reprocessor {
 public:
