@@ -1,4 +1,4 @@
-// src/common/version.hpp
+﻿// common/version.hpp
 
 #ifndef VERSION_HPP
 #define VERSION_HPP

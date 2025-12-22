@@ -8,7 +8,8 @@ set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # --- 1. 查找依赖 ---
-find_package(nlohmann_json REQUIRED)
+# [MODIFIED] 移除 nlohmann_json，改为查找 cJSON
+find_package(cJSON REQUIRED)
 find_package(SQLite3 REQUIRED)
 
 # --- 2. 引入自定义 CMake 模块 (核心步骤) ---
@@ -28,7 +29,6 @@ setup_compiler_flags()
 message(STATUS "Configuring 'workout_tracker_cli'...")
 
 # 调用我们在 TargetSetup.cmake 中定义的函数
-# 参数: 目标名, 入口文件, 源文件列表(来自 SourceFileCollection.cmake)
 configure_workout_target(
     workout_tracker_cli 
     src/main_cli.cpp 

@@ -12,10 +12,13 @@ bool Reprocessor::configure(const std::string& mappingFilePath) {
         std::cerr << "Error: [Reprocessor] Failed to read or parse mapping file: " << mappingFilePath << std::endl;
         return false;
     }
-    if (!mapper.loadMappings(jsonDataOpt.value())) {
+    
+    // [FIX] 使用 .get() 获取 cJSON* 原始指针
+    if (!mapper.loadMappings(jsonDataOpt.value().get())) {
         std::cerr << "Error: [Reprocessor] Failed to load mappings from JSON data." << std::endl;
         return false;
     }
+    
     std::cout << "[Reprocessor] Configuration successful. Mappings loaded from " << mappingFilePath << std::endl;
     return true;
 }

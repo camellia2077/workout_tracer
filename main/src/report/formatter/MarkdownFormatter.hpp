@@ -1,4 +1,4 @@
-﻿// src/report/formatter/MarkdownFormatter.hpp
+﻿// report/formatter/MarkdownFormatter.hpp
 
 #ifndef MARKDOWN_FORMATTER_H
 #define MARKDOWN_FORMATTER_H

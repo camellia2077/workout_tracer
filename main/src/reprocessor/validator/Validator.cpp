@@ -2,12 +2,13 @@
 
 #include "Validator.hpp"
 #include "common/JsonReader.hpp"
+#include "common/CJsonHelper.hpp" // 引入辅助头文件以使用 CJsonPtr
 #include <fstream>
 #include <iostream>
 #include <sstream>
 
 bool Validator::validate(const std::string& logFilePath, const std::string& mappingFilePath) {
-    // 步骤 1: 创建规则 (逻辑不变)
+    // 步骤 1: 创建规则
     auto validTitlesOpt = loadValidTitles(mappingFilePath);
     if (!validTitlesOpt) return false;
 
@@ -22,7 +23,7 @@ bool Validator::validate(const std::string& logFilePath, const std::string& mapp
         return false;
     }
 
-    LineValidator lineValidator; // 创建状态机实例
+    LineValidator lineValidator;
     int errorCount = 0;
     std::string line;
 
@@ -32,11 +33,9 @@ bool Validator::validate(const std::string& logFilePath, const std::string& mapp
 
         if (line.empty()) continue;
 
-        // 将行的验证工作委托给 LineValidator
         lineValidator.validateLine(line, rules, errorCount);
     }
     
-    // 步骤 3: 结束时进行最终检查
     lineValidator.finalizeValidation(errorCount);
 
     return errorCount == 0;
@@ -57,9 +56,6 @@ std::optional<ValidationRules> Validator::createRules(const std::vector<std::str
             std::regex(R"(^y\d{4}$)"),
             std::regex(R"(^\d{4}$)"),
             std::regex(titleRegexPattern.str()),
-            // [MODIFIED] Update content regex to support '+' or '-' at start, and optional 'lbs'/'kg' suffix
-            // 允许开头是 + 或 -
-            // 允许数字后跟 lbs 或 kg (大小写不敏感)
             std::regex(R"(^[+-]\s*\d+(\.\d+)?(lbs|kg|LBS|KG)?\s+\d+(\s*\+\s*\d+)*$)")
         };
     } catch (const std::regex_error& e) {
@@ -68,19 +64,31 @@ std::optional<ValidationRules> Validator::createRules(const std::vector<std::str
     }
 }
 
+// [FIXED] 适配 cJSON 的实现
 std::optional<std::vector<std::string>> Validator::loadValidTitles(const std::string& mappingFilePath) {
     auto jsonDataOpt = JsonReader::readFile(mappingFilePath);
     if (!jsonDataOpt) {
         std::cerr << "Error: [Validator] Could not read or parse mapping file at: " << mappingFilePath << std::endl;
         return std::nullopt;
     }
-    if (!jsonDataOpt.value().is_object()) {
+
+    // 获取 cJSON 指针
+    cJSON* root = jsonDataOpt.value().get();
+
+    if (!cJSON_IsObject(root)) {
         std::cerr << "Error: [Validator] Mapping file content is not a JSON object." << std::endl;
         return std::nullopt;
     }
+
     std::vector<std::string> titles;
-    for (auto& el : jsonDataOpt.value().items()) {
-        titles.push_back(el.key());
+    // 遍历 JSON 对象的所有 Key
+    cJSON* child = root->child;
+    while (child) {
+        // cJSON 对象的 child->string 就是 Key (例如 "bp")
+        if (child->string) {
+            titles.push_back(child->string);
+        }
+        child = child->next;
     }
     return titles;
 }

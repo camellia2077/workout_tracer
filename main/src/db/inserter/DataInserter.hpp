@@ -3,7 +3,8 @@
 #ifndef TRAINING_DATA_INSERTER_H
 #define TRAINING_DATA_INSERTER_H
 
-#include "nlohmann/json.hpp"
+// [MODIFIED] 移除 nlohmann_json，引入 cJSON
+#include <cjson/cJSON.h> 
 #include "sqlite3.h"
 
 /**
@@ -17,17 +18,18 @@ public:
 
     /**
      * @brief 执行插入操作。
-     * @param jsonData 包含训练数据的JSON对象。
+     * @param jsonData 包含训练数据的 cJSON 指针。
      * @return 如果成功返回true，如果发生任何错误则抛出std::runtime_error。
      */
-    bool insert(const nlohmann::json& jsonData);
+    // [MODIFIED] 参数类型更新为 const cJSON*
+    bool insert(const cJSON* jsonData);
 
 private:
     sqlite3* db_;
 
-    // [NEW] 辅助函数：专门负责将一组 Sets 插入到数据库
+    // [MODIFIED] 参数类型更新为 const cJSON*
     // 这里的 stmt 是已经准备好的 SQL 语句对象
-    void insertSets(sqlite3_stmt* stmt, sqlite3_int64 logId, const nlohmann::json& setsJson);
+    void insertSets(sqlite3_stmt* stmt, sqlite3_int64 logId, const cJSON* setsJson);
 };
 
 #endif // TRAINING_DATA_INSERTER_H

@@ -1,4 +1,4 @@
-﻿// src/report/formatter/MarkdownFormatter.cpp
+﻿// report/formatter/MarkdownFormatter.cpp
 
 #include "MarkdownFormatter.hpp"
 #include <iostream>

@@ -5,7 +5,7 @@
 #include <iostream>
 #include <stdexcept>
 
-bool DbFacade::insertTrainingData(sqlite3* db, const nlohmann::json& jsonData) {
+bool DbFacade::insertTrainingData(sqlite3* db, const cJSON* jsonData) {
     char* zErrMsg = nullptr;
 
     // 1. 开始事务
@@ -18,7 +18,7 @@ bool DbFacade::insertTrainingData(sqlite3* db, const nlohmann::json& jsonData) {
     try {
         // 2. 将具体工作委托给 Inserter
         DataInserter inserter(db);
-        inserter.insert(jsonData);
+        inserter.insert(jsonData); // 这里的 DataInserter.insert 现在接受 const cJSON*
 
     } catch (const std::exception& e) {
         std::cerr << "An error occurred during insertion: " << e.what() << std::endl;

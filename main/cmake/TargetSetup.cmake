@@ -40,7 +40,7 @@ function(configure_workout_target TARGET_NAME ENTRY_POINT_FILE SOURCE_LIST)
     target_link_libraries(
         ${TARGET_NAME}
         PRIVATE
-        nlohmann_json::nlohmann_json
+        cjson              # [MODIFIED] 替换为 cjson
         SQLite::SQLite3
     )
 

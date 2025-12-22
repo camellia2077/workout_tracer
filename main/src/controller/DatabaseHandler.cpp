@@ -4,7 +4,7 @@
 #include "common/FileReader.hpp"
 #include "common/JsonReader.hpp"
 #include "db/manager/DbManager.hpp"
-#include "db/facade/DbFacade.hpp"  // Corrected header include
+#include "db/facade/DbFacade.hpp"
 #include "report/facade/ReportFacade.hpp"
 #include <iostream>
 #include <filesystem>
@@ -34,8 +34,9 @@ bool DatabaseHandler::handle(const AppConfig& config) {
             std::cout << "--- Inserting file: " << jsonPath << " ---" << std::endl;
             auto jsonDataOpt = JsonReader::readFile(jsonPath);
             if (jsonDataOpt.has_value()) {
-                // Using the new DbFacade for data insertion
-                if (DbFacade::insertTrainingData(dbManager.getConnection(), jsonDataOpt.value())) {
+                // [MODIFIED] 使用 .get() 获取原始 cJSON* 指针传递给 DbFacade
+                // jsonDataOpt.value() 是 std::unique_ptr<cJSON>
+                if (DbFacade::insertTrainingData(dbManager.getConnection(), jsonDataOpt.value().get())) {
                     std::cout << "Successfully inserted data from " << jsonPath << std::endl;
                     successCount++;
                 } else {
@@ -47,6 +48,7 @@ bool DatabaseHandler::handle(const AppConfig& config) {
         return successCount == jsonFiles.size();
 
     } else if (config.action == ActionType::Export) {
+        // ... (Export 部分代码保持不变) ...
         std::cout << "Performing report export from database..." << std::endl;
 
         fs::path db_path = fs::path(config.base_path) / "workout_logs.sqlite3";

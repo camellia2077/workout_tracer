@@ -5,9 +5,10 @@
 
 #include <string>
 #include <map>
-#include "nlohmann/json.hpp"
 
-// <<< 新增：用于存储映射信息的结构体
+#include <cjson/cJSON.h> 
+
+// 用于存储映射信息的结构体
 struct ProjectMapping {
     std::string fullName;
     std::string type;
@@ -15,9 +16,9 @@ struct ProjectMapping {
 
 class ProjectNameMapper {
 public:
-    bool loadMappings(const nlohmann::json& jsonData);
+    // [MODIFIED] 函数签名更新为接收 cJSON 指针
+    bool loadMappings(const cJSON* jsonData);
 
-    // <<< 修改：返回包含全名和类型的结构体
     ProjectMapping getMapping(const std::string& shortName) const;
 
 private:

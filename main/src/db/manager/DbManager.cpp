@@ -1,4 +1,4 @@
-﻿// src/db/manager/DbManager.cpp
+﻿// db/manager/DbManager.cpp
 
 #include "DbManager.hpp"
 #include <iostream>
