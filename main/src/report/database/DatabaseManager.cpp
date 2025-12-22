@@ -1,4 +1,5 @@
-﻿// report/database/DatabaseManager.cpp
+﻿
+// report/database/DatabaseManager.cpp
 
 #include "DatabaseManager.hpp"
 #include <iostream>
@@ -8,13 +9,12 @@ std::map<std::string, CycleData> DatabaseManager::query_all_logs(sqlite3* db) {
     std::map<std::string, CycleData> data_by_cycle;
     sqlite3_stmt* stmt;
 
-    // [MODIFIED] 更新 SQL 查询以包含 weight, unit, elastic_band_weight
+    // SQL 查询已经包含了 exercise_type (l.exercise_type 是第 3 列，索引为 2)
     const char* sql = "SELECT l.cycle_id, l.total_days, l.exercise_type, l.id, l.date, l.exercise_name, "
                       "s.reps, s.weight, s.unit, s.elastic_band_weight "
                       "FROM training_logs l "
                       "JOIN training_sets s ON l.id = s.log_id "
                       "ORDER BY l.cycle_id, l.date, l.id, s.set_number;"; 
-                      // 这里的 s.set_number 排序很重要，保证组的顺序正确
 
     if (sqlite3_prepare_v2(db, sql, -1, &stmt, NULL) != SQLITE_OK) {
         std::cerr << "Failed to prepare query statement: " << sqlite3_errmsg(db) << std::endl;
@@ -27,13 +27,15 @@ std::map<std::string, CycleData> DatabaseManager::query_all_logs(sqlite3* db) {
     while (sqlite3_step(stmt) == SQLITE_ROW) {
         std::string cycle_id = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 0));
         int total_days = sqlite3_column_int(stmt, 1);
-        std::string type = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 2));
+        std::string type = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 2)); // 获取类型
         long long log_id = sqlite3_column_int64(stmt, 3);
 
         // 初始化 CycleData
         if (data_by_cycle.find(cycle_id) == data_by_cycle.end()) {
             data_by_cycle[cycle_id].total_days = total_days;
-            data_by_cycle[cycle_id].type = type;
+            // 注意：因为现在一个 Cycle 包含混合类型，这里的 type 可能会是该 Cycle 中第一条记录的类型
+            // 但这不影响后续 LogEntry 的准确性
+            data_by_cycle[cycle_id].type = type; 
         }
 
         // 初始化 LogEntry
@@ -41,10 +43,11 @@ std::map<std::string, CycleData> DatabaseManager::query_all_logs(sqlite3* db) {
             LogEntry entry;
             entry.date = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 4));
             entry.exercise_name = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 5));
+            entry.exercise_type = type; // [NEW] 将类型赋值给具体的动作条目
             temp_entries[log_id] = entry;
         }
         
-        // [MODIFIED] 提取详细的组信息
+        // 提取详细的组信息
         SetDetail detail;
         detail.reps = sqlite3_column_int(stmt, 6);
         detail.weight = sqlite3_column_double(stmt, 7);

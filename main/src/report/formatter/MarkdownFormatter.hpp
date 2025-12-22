@@ -1,4 +1,4 @@
-﻿// report/formatter/MarkdownFormatter.hpp
+﻿// src/report/formatter/MarkdownFormatter.hpp
 
 #ifndef MARKDOWN_FORMATTER_H
 #define MARKDOWN_FORMATTER_H
@@ -28,10 +28,8 @@ private:
         std::vector<int> reps_list;
     };
 
-    // [NEW] 辅助函数：将散乱的 Sets 聚合成 Group (纯逻辑，不涉及 IO)
+    // [NEW] 辅助函数声明
     static std::vector<SetGroup> groupSets(const std::vector<SetDetail>& sets);
-
-    // [NEW] 辅助函数：负责格式化并输出单个动作的所有组信息 (负责 IO)
     static void formatExercise(std::ostream& md_file, const LogEntry& log);
 };
 

@@ -55,7 +55,8 @@ bool DataInserter::insert(const nlohmann::json& jsonData) {
     try {
         const std::string cycle_id = jsonData.at("cycle_id").get<std::string>();
         const int total_days = jsonData.at("total_days").get<int>();
-        const std::string exercise_type = jsonData.at("type").get<std::string>();
+        // [MODIFIED] 这里删除了旧的 exercise_type 获取逻辑
+        // const std::string exercise_type = jsonData.at("type").get<std::string>(); 
 
         // 第 1 层循环：遍历 Session
         for (const auto& session : jsonData.at("sessions")) {
@@ -63,12 +64,22 @@ bool DataInserter::insert(const nlohmann::json& jsonData) {
 
             // 第 2 层循环：遍历 Exercise
             for (const auto& exercise : session.at("exercises")) {
+                
+                // [NEW] 在这里获取每个动作的具体类型
+                std::string current_type = "unknown";
+                if (exercise.contains("type")) {
+                    current_type = exercise.at("type").get<std::string>();
+                }
+
                 // 插入 training_logs
                 sqlite3_bind_text(stmt_log, 1, cycle_id.c_str(), -1, SQLITE_STATIC);
                 sqlite3_bind_int(stmt_log, 2, total_days);
                 sqlite3_bind_text(stmt_log, 3, date.c_str(), -1, SQLITE_STATIC);
                 sqlite3_bind_text(stmt_log, 4, exercise.at("name").get<std::string>().c_str(), -1, SQLITE_STATIC);
-                sqlite3_bind_text(stmt_log, 5, exercise_type.c_str(), -1, SQLITE_STATIC);
+                
+                // [MODIFIED] 绑定具体的 current_type
+                sqlite3_bind_text(stmt_log, 5, current_type.c_str(), -1, SQLITE_STATIC);
+                
                 sqlite3_bind_double(stmt_log, 6, exercise.at("totalVolume").get<double>());
 
                 if (sqlite3_step(stmt_log) != SQLITE_DONE) {
@@ -79,18 +90,16 @@ bool DataInserter::insert(const nlohmann::json& jsonData) {
                 // 获取刚插入的 log_id
                 sqlite3_int64 last_log_id = sqlite3_last_insert_rowid(db_);
 
-                // [MODIFIED] 调用辅助函数插入 Sets，消除了原本的第 3 层嵌套循环
+                // 调用辅助函数插入 Sets
                 insertSets(stmt_set, last_log_id, exercise.at("sets"));
             }
         }
     } catch (const std::exception& e) {
-        // 确保在抛出异常前释放资源
         sqlite3_finalize(stmt_log);
         sqlite3_finalize(stmt_set);
-        throw; // 重新抛出异常
+        throw; 
     }
 
-    // 成功完成所有操作后，释放资源
     sqlite3_finalize(stmt_log);
     sqlite3_finalize(stmt_set);
     return true;

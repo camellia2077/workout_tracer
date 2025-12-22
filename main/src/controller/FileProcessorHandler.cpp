@@ -43,43 +43,30 @@ bool FileProcessorHandler::handle(const AppConfig& config) {
                 std::cerr << "Validation failed, skipping conversion." << std::endl;
             } else {
                 auto processedDataOpt = reprocessor_.convert(filePath);
+                
+                // [MODIFIED] 核心修改：不再进行拆分，直接处理整个文件
                 if (processedDataOpt.has_value() && !processedDataOpt.value().empty()) {
                     try {
-                        std::map<std::string, std::vector<DailyData>> dataByType;
-                        for (const auto& daily : processedDataOpt.value()) {
-                            for (const auto& project : daily.projects) {
-                                auto& dailyDataForType = dataByType[project.type];
-                                auto it = std::find_if(dailyDataForType.begin(), dailyDataForType.end(),
-                                                    [&](const DailyData& d) { return d.date == daily.date; });
-                                if (it != dailyDataForType.end()) {
-                                    it->projects.push_back(project);
-                                } else {
-                                    dailyDataForType.push_back({daily.date, {project}});
-                                }
-                            }
-                        }
-                        
                         const std::string output_dir_base = "reprocessed_json";
                         fs::path reprocessed_base_path = fs::path(config.base_path) / output_dir_base;
                         
+                        // 确保目录存在
                         fs::create_directories(reprocessed_base_path);
 
-                        std::string base_filename = fs::path(filePath).stem().string() + "_reprocessed.json";
-
-                        for (const auto& [type, typeData] : dataByType) {
-                            fs::path type_specific_path = reprocessed_base_path / type;
-                            fs::create_directories(type_specific_path);
-                            
-                            fs::path output_filepath = type_specific_path / base_filename;
-                            std::string outputContent = JsonFormatter::format(typeData);
-                            
-                            std::cout << "Writing data for type '" << type << "' to '" << output_filepath.string() << "'..." << std::endl;
-                            if (!writeStringToFile(output_filepath.string(), outputContent)) {
-                                std::cerr << "Error writing file for type '" << type << "'." << std::endl;
-                            }
+                        // 生成单一的文件名 (例如: 2025_7.json)
+                        std::string base_filename = fs::path(filePath).stem().string() + ".json";
+                        fs::path output_filepath = reprocessed_base_path / base_filename;
+                        
+                        // 直接格式化整个 processedData
+                        std::string outputContent = JsonFormatter::format(processedDataOpt.value());
+                        
+                        std::cout << "Writing converted data to '" << output_filepath.string() << "'..." << std::endl;
+                        if (writeStringToFile(output_filepath.string(), outputContent)) {
+                            result = true;
+                            std::cout << "Conversion successful." << std::endl;
+                        } else {
+                            std::cerr << "Error writing file." << std::endl;
                         }
-                        result = true;
-                        std::cout << "Conversion successful." << std::endl;
 
                     } catch (const fs::filesystem_error& e) {
                         std::cerr << "Filesystem error during output: " << e.what() << std::endl;
@@ -94,7 +81,7 @@ bool FileProcessorHandler::handle(const AppConfig& config) {
         }
 
         if (result) successCount++;
-        std::cout << "====================================\\n" << std::endl;
+        std::cout << "====================================\n" << std::endl;
     }
 
     std::cout << "Processing complete. " << successCount << " of " << filesToProcess.size() << " files handled successfully." << std::endl;

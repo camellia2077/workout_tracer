@@ -8,7 +8,7 @@
 #include <vector>
 #include <map>
 
-// [NEW] 定义每一组的详细数据
+// 定义每一组的详细数据
 struct SetDetail {
     int reps;
     double weight;
@@ -16,14 +16,15 @@ struct SetDetail {
     double elastic_band_weight;
 };
 
-// [MODIFIED] 更新 LogEntry 以包含 SetDetail 列表
+// [MODIFIED] 更新 LogEntry 以包含 exercise_type
 struct LogEntry {
     std::string date;
     std::string exercise_name;
-    std::vector<SetDetail> sets; // 原来是 vector<int> reps
+    std::string exercise_type; // [NEW] 新增字段，用于存储 push/pull/squat
+    std::vector<SetDetail> sets;
 };
 
-// CycleData 结构体保持不变
+// CycleData 结构体
 struct CycleData {
     std::string type;
     int total_days;
