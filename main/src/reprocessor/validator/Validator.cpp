@@ -1,4 +1,4 @@
-// src/reprocessor/validator/Validator.cpp
+﻿// reprocessor/validator/Validator.cpp
 
 #include "Validator.hpp"
 #include "common/JsonReader.hpp"
@@ -42,7 +42,6 @@ bool Validator::validate(const std::string& logFilePath, const std::string& mapp
     return errorCount == 0;
 }
 
-// [FIX] Removed "Validator::" from the return type. ValidationRules is now a standalone struct.
 std::optional<ValidationRules> Validator::createRules(const std::vector<std::string>& validTitles) {
     if (validTitles.empty()) {
         std::cerr << "Warning: [Validator] No valid titles found in mapping file." << std::endl;
@@ -58,7 +57,10 @@ std::optional<ValidationRules> Validator::createRules(const std::vector<std::str
             std::regex(R"(^y\d{4}$)"),
             std::regex(R"(^\d{4}$)"),
             std::regex(titleRegexPattern.str()),
-            std::regex(R"(^\+\s*\d+(\.\d+)?\s+\d+(\s*\+\s*\d+)*$)")
+            // [MODIFIED] Update content regex to support '+' or '-' at start, and optional 'lbs'/'kg' suffix
+            // 允许开头是 + 或 -
+            // 允许数字后跟 lbs 或 kg (大小写不敏感)
+            std::regex(R"(^[+-]\s*\d+(\.\d+)?(lbs|kg|LBS|KG)?\s+\d+(\s*\+\s*\d+)*$)")
         };
     } catch (const std::regex_error& e) {
         std::cerr << "Error: [Validator] Failed to create regex rules: " << e.what() << std::endl;

@@ -1,4 +1,4 @@
-// src/db/DbManager.cpp
+﻿// src/db/manager/DbManager.cpp
 
 #include "DbManager.hpp"
 #include <iostream>
@@ -30,13 +30,13 @@ sqlite3* DbManager::getConnection() const {
     return db_;
 }
 
-// [MODIFIED] 更新了 training_logs 表的结构
+// [MODIFIED] 更新了 training_sets 表的结构，新增 unit 和 elastic_band_weight
 bool DbManager::createTables() {
     const char* sql = 
         "CREATE TABLE IF NOT EXISTS training_logs ("
         "  id INTEGER PRIMARY KEY AUTOINCREMENT,"
-        "  cycle_id TEXT NOT NULL,"            // <<< 新增: 训练周期的唯一ID
-        "  total_days INTEGER NOT NULL,"       // <<< 新增: 该周期的总训练天数
+        "  cycle_id TEXT NOT NULL,"
+        "  total_days INTEGER NOT NULL,"
         "  date TEXT NOT NULL,"
         "  exercise_name TEXT NOT NULL,"
         "  exercise_type TEXT NOT NULL,"
@@ -49,6 +49,8 @@ bool DbManager::createTables() {
         "  weight REAL NOT NULL,"
         "  reps INTEGER NOT NULL,"
         "  volume REAL NOT NULL,"
+        "  unit TEXT DEFAULT 'kg',"                  // [NEW] 单位 (kg/lbs)
+        "  elastic_band_weight REAL DEFAULT 0.0,"    // [NEW] 弹力带辅助重量
         "  FOREIGN KEY (log_id) REFERENCES training_logs (id)"
         ");";
 

@@ -1,3 +1,4 @@
+﻿// reprocessor/preprocessor/date_processor/DateProcessor.cpp
 #include "DateProcessor.hpp"
 
 void DateProcessor::completeDates(std::vector<DailyData>& allData, int yearToUse) {

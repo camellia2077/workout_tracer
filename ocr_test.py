@@ -1,8 +1,8 @@
-import easyocr
+import easyocr # type: ignore
 import json
-from PIL import Image
+from PIL import Image # type: ignore
 import numpy as np
-import torch
+import torch # type: ignore
 import config  # 导入您的配置文件
 import sys     # 导入 sys 模块以方便地退出程序
 

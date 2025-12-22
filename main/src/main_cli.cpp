@@ -1,92 +1,27 @@
-// src/main_cli.cpp
+﻿// main_cli.cpp
 
+#include "cli/CommandLineParser.hpp"
 #include "controller/ActionHandler.hpp"
 #include <iostream>
-#include <optional>
-#include <string>
-#include <filesystem>
-#include <vector>
 
 #ifdef _WIN32
 #include <windows.h>
 #endif
 
-void printUsage(const char* programName) {
-    std::cerr << "Usage: " << programName << " <command> [<path>] [options]" << std::endl;
-    std::cerr << std::endl;
-    std::cerr << "Description:" << std::endl;
-    std::cerr << "  Processes, validates, inserts, or exports workout logs." << std::endl;
-    std::cerr << std::endl;
-    std::cerr << "Commands:" << std::endl;
-    std::cerr << "  validate <path>        Only validate the log file format." << std::endl;
-    std::cerr << "  convert <path>         Convert the log file to JSON format." << std::endl;
-    std::cerr << "  insert <path>          Insert JSON files into the database." << std::endl;
-    std::cerr << "  export                 Export all data from the database to Markdown files." << std::endl;
-    std::cerr << std::endl;
-    std::cerr << "Options:" << std::endl;
-    std::cerr << "  -h, --help             Show this help message and exit." << std::endl;
-}
-
-std::optional<AppConfig> parseCommandLine(int argc, char* argv[]) {
-    if (argc < 2) {
-        printUsage(argv[0]);
-        return std::nullopt;
-    }
-
-    AppConfig config;
-    std::vector<std::string> args(argv + 1, argv + argc);
-    std::string command = args[0];
-
-    if (command == "export") {
-        config.action = ActionType::Export;
-        if (args.size() > 1) { 
-            std::cerr << "Error: 'export' command does not take any additional arguments." << std::endl;
-            return std::nullopt;
-        }
-    } 
-    else if (command == "validate" || command == "convert" || command == "insert") {
-        if (args.size() < 2) {
-            std::cerr << "Error: '" << command << "' command requires a <path> argument." << std::endl;
-            return std::nullopt;
-        }
-        config.log_filepath = args[1];
-        if (command == "validate") config.action = ActionType::Validate;
-        if (command == "convert") config.action = ActionType::Convert;
-        if (command == "insert") config.action = ActionType::Insert;
-
-        if (args.size() > 2) {
-            std::cerr << "Error: Unknown or invalid argument '" << args[2] << "'" << std::endl;
-            return std::nullopt;
-        }
-
-    } else if (command == "-h" || command == "--help") {
-        printUsage(argv[0]);
-        return std::nullopt;
-    } else {
-        std::cerr << "Error: Unknown command '" << command << "'" << std::endl;
-        printUsage(argv[0]);
-        return std::nullopt;
-    }
-
-    std::filesystem::path exe_path = argv[0];
-    config.base_path = exe_path.parent_path().string();
-    config.mapping_path = "mapping.json";
-
-    return config;
-}
-
 int main(int argc, char* argv[]) {
+    // Windows 控制台编码设置
 #ifdef _WIN32
     SetConsoleOutputCP(CP_UTF8);
     SetConsoleCP(CP_UTF8);
 #endif
 
-    auto configOpt = parseCommandLine(argc, argv);
+    // 1. 使用新的 CLI 解析器处理参数
+    auto configOpt = CommandLineParser::parse(argc, argv);
     if (!configOpt.has_value()) {
-        return 1;
+        return 1; // 参数错误或显示了帮助信息，退出
     }
 
-    // [MODIFIED] 直接调用 ActionHandler 的静态 run 方法
+    // 2. 执行核心逻辑
     bool success = ActionHandler::run(configOpt.value());
 
     return success ? 0 : 1;

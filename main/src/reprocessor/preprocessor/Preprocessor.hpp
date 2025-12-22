@@ -1,4 +1,4 @@
-// src/reprocessor/preprocessor/Preprocessor.hpp
+﻿// reprocessor/preprocessor/Preprocessor.hpp
 
 #ifndef PREPROCESSOR_H
 #define PREPROCESSOR_H
@@ -16,6 +16,9 @@ public:
 
 private:
     LogParser parser;
+
+    // [NEW] 辅助函数：负责遍历数据并将项目简称映射为全名和类型
+    void mapProjectNames(std::vector<DailyData>& data, const ProjectNameMapper& mapper);
 };
 
 #endif // PREPROCESSOR_H

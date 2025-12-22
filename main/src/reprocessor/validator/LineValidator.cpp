@@ -1,4 +1,4 @@
-// src/reprocessor/validator/LineValidator.cpp
+﻿// reprocessor/validator/LineValidator.cpp
 
 #include "LineValidator.hpp"
 #include <iostream>
@@ -40,7 +40,7 @@ void LineValidator::validateLine(const std::string& line, const ValidationRules&
         return;
     }
 
-    if (line[0] == '+') {
+    if (line[0] == '+' || line[0] == '-') {
         if (state_.currentState == StateType::EXPECTING_YEAR || state_.currentState == StateType::EXPECTING_DATE || state_.currentState == StateType::EXPECTING_TITLE) {
             std::cerr << "Error: [Validator] Invalid format at line " << state_.lineCounter
                       << ". Unexpected content line." << std::endl;

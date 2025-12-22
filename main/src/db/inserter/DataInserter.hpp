@@ -1,4 +1,4 @@
-// src/db/DataInserter.hpp
+﻿// db/inserter/DataInserter.hpp
 
 #ifndef TRAINING_DATA_INSERTER_H
 #define TRAINING_DATA_INSERTER_H
@@ -24,6 +24,10 @@ public:
 
 private:
     sqlite3* db_;
+
+    // [NEW] 辅助函数：专门负责将一组 Sets 插入到数据库
+    // 这里的 stmt 是已经准备好的 SQL 语句对象
+    void insertSets(sqlite3_stmt* stmt, sqlite3_int64 logId, const nlohmann::json& setsJson);
 };
 
 #endif // TRAINING_DATA_INSERTER_H

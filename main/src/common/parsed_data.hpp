@@ -1,4 +1,4 @@
-// src/common/parsed_data.hpp
+﻿// common/parsed_data.hpp
 
 #ifndef PARSED_DATA_H
 #define PARSED_DATA_H

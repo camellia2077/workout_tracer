@@ -1,4 +1,4 @@
-// src/reprocessor/log_formatter/JsonFormatter.cpp
+﻿// reprocessor/preprocessor/log_formatter/JsonFormatter.cpp
 
 #include "JsonFormatter.hpp"
 #include "nlohmann/json.hpp"
@@ -11,13 +11,24 @@ using json = nlohmann::ordered_json;
  * @brief Provides a JSON serialization rule for the SetData struct.
  */
 void to_json(json& j, const SetData& s) {
-    j = json{
-        {"set", s.setNumber},
-        {"weight", s.weight},
-        {"unit", "kg"}, // Assuming the unit is always kg
-        {"reps", s.reps},
-        {"volume", s.volume}
-    };
+    // [MODIFIED] 根据重量正负区分普通组和弹力带组
+    if (s.weight < 0) {
+        j = json{
+            {"set", s.setNumber},
+            {"elastic_band", std::abs(s.weight)}, // 使用正值记录弹力带磅数
+            {"unit", "lbs"}, // 弹力带通常使用 lbs
+            {"reps", s.reps},
+            {"volume", 0.0} // 不记录容量
+        };
+    } else {
+        j = json{
+            {"set", s.setNumber},
+            {"weight", s.weight},
+            {"unit", "kg"},
+            {"reps", s.reps},
+            {"volume", s.volume}
+        };
+    }
 }
 
 /**

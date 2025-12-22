@@ -1,4 +1,4 @@
-// src/database/DatabaseManager.hpp
+﻿// report/database/DatabaseManager.hpp
 
 #ifndef DATABASE_MANAGER_H
 #define DATABASE_MANAGER_H
@@ -8,14 +8,22 @@
 #include <vector>
 #include <map>
 
-// LogEntry 结构体保持不变
+// [NEW] 定义每一组的详细数据
+struct SetDetail {
+    int reps;
+    double weight;
+    std::string unit;
+    double elastic_band_weight;
+};
+
+// [MODIFIED] 更新 LogEntry 以包含 SetDetail 列表
 struct LogEntry {
     std::string date;
     std::string exercise_name;
-    std::vector<int> reps;
+    std::vector<SetDetail> sets; // 原来是 vector<int> reps
 };
 
-// [NEW] 新增结构体，用于封装单个周期的所有数据
+// CycleData 结构体保持不变
 struct CycleData {
     std::string type;
     int total_days;
@@ -29,7 +37,6 @@ public:
      * @param db sqlite3数据库连接的指针。
      * @return 按 cycle_id 分组的日志数据。
      */
-    // [MODIFIED] 更改了函数返回值
     static std::map<std::string, CycleData> query_all_logs(sqlite3* db);
 };
 

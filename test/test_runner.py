@@ -45,16 +45,43 @@ class TestRunner:
 
     def _prepare_executable(self):
         print(f"{CYAN}--- 2. Preparing Dependencies ---{RESET}")
-        files_to_copy = { self.config.EXE_NAME: "可执行文件", self.config.CONFIG_NAME: "配置文件" }
-        for file_name, desc in files_to_copy.items():
-            source = os.path.join(self.config.BUILD_DIR, file_name)
-            # [MODIFIED] 复制到新的测试运行目录
-            dest = os.path.join(self.test_run_dir, file_name)
-            if not os.path.exists(source):
-                print(f"  {RED}错误: 源文件未找到 '{source}'. 请检查 config.py。{RESET}")
-                return False
-            shutil.copy(source, dest)
-            print(f"  {GREEN}{desc} '{file_name}' 已成功复制到 '{self.test_run_dir}'。{RESET}")
+        
+        # ---------------------------------------------------------
+        # 1. 复制可执行文件 (.exe)
+        # ---------------------------------------------------------
+        source_exe = os.path.join(self.config.BUILD_DIR, self.config.EXE_NAME)
+        dest_exe = os.path.join(self.test_run_dir, self.config.EXE_NAME)
+
+        if not os.path.exists(source_exe):
+            print(f"  {RED}错误: 可执行文件未找到 '{source_exe}'. 请检查 config.py 及编译输出。{RESET}")
+            return False
+            
+        shutil.copy(source_exe, dest_exe)
+        print(f"  {GREEN}可执行文件 '{self.config.EXE_NAME}' 已成功复制到 '{self.test_run_dir}'。{RESET}")
+
+        # ---------------------------------------------------------
+        # 2. 复制 config 文件夹 (包含 mapping.json)
+        # ---------------------------------------------------------
+        # 依据 CMake 的 POST_BUILD 操作，config 文件夹会在 build 目录生成
+        source_config_dir = os.path.join(self.config.BUILD_DIR, "config")
+        dest_config_dir = os.path.join(self.test_run_dir, "config")
+
+        if not os.path.exists(source_config_dir):
+            print(f"  {RED}错误: Config 目录未找到 '{source_config_dir}'。{RESET}")
+            print(f"  {RED}      请确保 CMake 构建成功且执行了 POST_BUILD 复制操作。{RESET}")
+            return False
+
+        # 如果目标目录已存在，先删除，确保文件是最新的
+        if os.path.exists(dest_config_dir):
+            shutil.rmtree(dest_config_dir)
+        
+        try:
+            shutil.copytree(source_config_dir, dest_config_dir)
+            print(f"  {GREEN}配置目录 'config' (含配置文件) 已成功复制到 '{self.test_run_dir}'。{RESET}")
+        except Exception as e:
+             print(f"  {RED}错误: 复制 config 目录失败: {e}{RESET}")
+             return False
+
         return True
 
     def _run_validation_test(self):
@@ -98,7 +125,10 @@ class TestRunner:
                 return True
             else:
                 print(f"  ... {RED}FAILED{RESET}")
-                # ... (日志写入逻辑保持不变)
+                # 将错误输出写入日志，方便调试
+                with open(log_path, 'a', encoding='utf-8') as f:
+                    f.write("\n\n=== STDERR ===\n")
+                    f.write(result.stderr)
                 return False
         except Exception as e:
             print(f"  ... {RED}CRASHED{RESET}\n      错误: {e}")

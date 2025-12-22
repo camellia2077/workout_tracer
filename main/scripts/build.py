@@ -1,4 +1,4 @@
-# build.py
+# scripts/build.py
 
 import os
 import subprocess
@@ -39,7 +39,8 @@ def main():
     """配置并构建项目的主函数。"""
     start_time = time.monotonic()
 
-    project_root = Path(__file__).parent.resolve()
+    # [MODIFIED] 因为脚本在 scripts/ 目录下，所以需要向上两级才能找到项目根目录
+    project_root = Path(__file__).parent.parent.resolve()
     build_dir = project_root / "build"
     
     # 在Windows上启用ANSI颜色代码
@@ -47,7 +48,8 @@ def main():
         os.system('color')
         
     os.chdir(project_root)
-    print(f"Switched to script directory: {project_root}")
+    # [MODIFIED] 更新提示信息
+    print(f"Switched to project root directory: {project_root}")
 
     # 准备构建目录
     print_header("Preparing build directory")
@@ -58,6 +60,8 @@ def main():
         print(f"Using existing build directory '{build_dir.name}'.")
 
     # 配置项目 - 确保使用Ninja
+    # 注意：这里的 ".." 指的是相对于 build 目录的上一级，也就是 project_root，
+    # 只要 project_root 计算正确，CMakeLists.txt 就能被找到。
     print_header("Configuring project with CMake+Ninja for Release build")
     cmake_configure_command = [
         "cmake",

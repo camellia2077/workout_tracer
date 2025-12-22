@@ -7,6 +7,10 @@
         "fullName": "Bar Bell Press",
         "type": "push"
     },
+    "pu":{
+        "fullName": "Pull Up",
+        "type": "pull"
+    },
     "sq": {
         "fullName": "Squat",
         "type": "squat"

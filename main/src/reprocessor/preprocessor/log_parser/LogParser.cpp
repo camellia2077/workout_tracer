@@ -1,4 +1,4 @@
-// src/reprocessor/log_parser/LogParser.cpp
+﻿// reprocessor/preprocessor/log_parser/LogParser.cpp
 
 #include "LogParser.hpp"
 #include <fstream>
@@ -6,6 +6,7 @@
 #include <iostream>
 #include <algorithm>
 #include <regex>
+#include <cctype> // [NEW] 用于 isdigit
 
 LogParser::LogParser() {}
 
@@ -59,8 +60,8 @@ bool LogParser::parseFile(const std::string& filePath) {
             currentDailyData.date = line;
             currentProject = nullptr;
         } 
-        // 检查是否是内容行
-        else if (line[0] == '+') {
+        // [MODIFIED] 检查是否是内容行 (支持 + 或 -)
+        else if (line[0] == '+' || line[0] == '-') {
             if (!currentProject) {
                 std::cerr << "Error: [LogParser] Content line found without a preceding project name at line " << lineCounter << "." << std::endl;
                 return false;
@@ -98,26 +99,45 @@ bool LogParser::parseFile(const std::string& filePath) {
     return true;
 }
 
-// parseContentLine 函数保持不变
+// [MODIFIED] 修改后的解析内容行函数，支持负号和单位过滤
 std::vector<SetData> LogParser::parseContentLine(const std::string& line, double& outWeight) {
     std::vector<SetData> sets;
     std::stringstream ss(line);
-    char plusSign;
-    ss >> plusSign;
-    ss >> outWeight;
+    
+    // 1. 读取符号 (+ 或 -)
+    char signChar;
+    ss >> signChar; 
+    
+    // 2. 读取数值
+    double val;
+    ss >> val;
+    
+    // 3. 设置输出重量 (如果是 '-' 则为负)
+    outWeight = (signChar == '-') ? -val : val;
 
+    // 4. 读取剩余部分 (包含潜在的单位和 reps)
     std::string repsPart;
     std::getline(ss, repsPart);
 
-    repsPart.erase(std::remove_if(repsPart.begin(), repsPart.end(), ::isspace), repsPart.end());
+    // [NEW] 清理 repsPart，只保留数字和 '+' 号，移除 'lbs', 'kg' 等字符
+    std::string cleanReps;
+    for (char c : repsPart) {
+        if (std::isdigit(c) || c == '+') {
+            cleanReps += c;
+        }
+    }
 
-    std::stringstream reps_ss(repsPart);
+    std::stringstream reps_ss(cleanReps);
     std::string rep_token;
     while(std::getline(reps_ss, rep_token, '+')) {
         if (!rep_token.empty()) {
             SetData currentSet;
-            currentSet.reps = std::stoi(rep_token);
-            sets.push_back(currentSet);
+            try {
+                currentSet.reps = std::stoi(rep_token);
+                sets.push_back(currentSet);
+            } catch (...) {
+                // 忽略转换错误
+            }
         }
     }
     return sets;

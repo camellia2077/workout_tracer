@@ -1,4 +1,4 @@
-// src/formatter/MarkdownFormatter.hpp
+﻿// report/formatter/MarkdownFormatter.hpp
 
 #ifndef MARKDOWN_FORMATTER_H
 #define MARKDOWN_FORMATTER_H
@@ -7,6 +7,7 @@
 #include <string>
 #include <vector>
 #include <map>
+#include <iostream> // 需要 ostream
 
 class MarkdownFormatter {
 public:
@@ -16,8 +17,22 @@ public:
      * @param output_dir 要保存 .md 文件的目标目录路径。
      * @return 如果成功导出所有文件，则返回 true。
      */
-    // [MODIFIED] 更改了函数参数
     static bool export_to_markdown(const std::map<std::string, CycleData>& data_by_cycle, const std::string& output_dir);
+
+private:
+    // [NEW] 辅助结构体：用于在打印前聚合相同配置的组
+    struct SetGroup {
+        double weight;
+        std::string unit;
+        double elastic_band;
+        std::vector<int> reps_list;
+    };
+
+    // [NEW] 辅助函数：将散乱的 Sets 聚合成 Group (纯逻辑，不涉及 IO)
+    static std::vector<SetGroup> groupSets(const std::vector<SetDetail>& sets);
+
+    // [NEW] 辅助函数：负责格式化并输出单个动作的所有组信息 (负责 IO)
+    static void formatExercise(std::ostream& md_file, const LogEntry& log);
 };
 
 #endif // MARKDOWN_FORMATTER_H
