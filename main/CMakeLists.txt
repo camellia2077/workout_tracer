@@ -25,6 +25,12 @@ include(TargetSetup)
 # --- 3. 应用设置 ---
 setup_compiler_flags()
 
+# 导出编译数据库 (用于 clang-tidy)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
+# 添加格式化和代码检查目标
+add_lint_targets("${ALL_SOURCES}")
+
 # --- 4. 生成目标 ---
 message(STATUS "Configuring 'workout_tracker_cli'...")
 

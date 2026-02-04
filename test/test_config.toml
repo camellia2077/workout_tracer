@@ -1,0 +1,31 @@
+# test_config.toml
+
+[paths]
+# C++ 项目编译后 workout_tracker_cli.exe 所在的构建目录
+build_dir = 'C:/Computer/my_github/github_cpp/workout_calculator/workout_calculator/main/build'
+
+# 存放原始训练日志 (.txt 文件) 的目录
+input_dir = 'C:/Computer/my_github/github_cpp/workout_calculator/RECORD'
+
+# 测试输出的根目录
+test_output_parent_dir = 'C:/Computer/my_github/github_cpp/workout_calculator/mytest'
+
+[names]
+test_output_dir_name = 'test_output'
+py_output_dir_name = 'pyoutput'
+exe_name = 'workout_tracker_cli.exe'
+config_name = 'mapping.json'
+db_name = 'workout_logs.sqlite3'
+
+[options]
+clean_on_start = true
+
+[[copy_items]]
+type = 'file'
+source_rel = 'workout_tracker_cli.exe'
+dest_rel = ''
+
+[[copy_items]]
+type = 'dir'
+source_rel = 'config'
+dest_rel = 'config'
