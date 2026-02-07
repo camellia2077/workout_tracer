@@ -7,8 +7,8 @@
 #include "infrastructure/reporting/database/database_manager.hpp"
 #include "infrastructure/reporting/formatter/markdown_formatter.hpp"
 
-auto ReportFacade::GenerateReport(sqlite3* sqlite_db, const std::string& output_dir)
-    -> bool {
+auto ReportFacade::GenerateReport(sqlite3* sqlite_db,
+                                  const std::string& output_dir) -> bool {
   std::cout << "Starting report generation..." << std::endl;
 
   auto data = DatabaseManager::QueryAllLogs(sqlite_db);

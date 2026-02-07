@@ -19,8 +19,8 @@ auto MarkdownFormatter::GroupSets(const std::vector<SetDetail>& sets)
   std::vector<SetGroup> groups;
 
   constexpr double kEpsilon = 0.001;
-  auto is_same_load =
-      [](const SetDetail& set_detail, const SetGroup& set_group) -> bool {
+  auto is_same_load = [](const SetDetail& set_detail,
+                         const SetGroup& set_group) -> bool {
     return std::abs(set_detail.weight_ - set_group.weight_) < kEpsilon &&
            set_detail.unit_ == set_group.unit_ &&
            std::abs(set_detail.elastic_band_weight_ - set_group.elastic_band_) <
@@ -93,9 +93,10 @@ auto MarkdownFormatter::FormatExercise(std::ostream& md_file,
     report_stream << "]";
 
     md_file << "    - `" << report_stream.str() << "`";
-    md_file << " (Vol: " << std::fixed << std::setprecision(1) << group.volume_ << "kg";
+    md_file << " (Vol: " << std::fixed << std::setprecision(1) << group.volume_
+            << "kg";
     if (group.reps_list_[0] > 1 || group.reps_list_.size() > 1) {
-       md_file << ", e1RM: " << group.estimated_1rm_ << "kg";
+      md_file << ", e1RM: " << group.estimated_1rm_ << "kg";
     }
     md_file << ")\n";
 
@@ -107,8 +108,7 @@ auto MarkdownFormatter::FormatExercise(std::ostream& md_file,
 
 auto MarkdownFormatter::ExportToMarkdown(
     const std::map<std::string, CycleData>& data_by_cycle,
-    const std::vector<PRRecord>& prs,
-    const std::string& output_dir) -> bool {
+    const std::vector<PRRecord>& prs, const std::string& output_dir) -> bool {
   std::cout << "Exporting data to Markdown files (Enhanced Reporting System)..."
             << std::endl;
 
@@ -132,8 +132,8 @@ auto MarkdownFormatter::ExportToMarkdown(
 }
 
 auto MarkdownFormatter::ProcessCycle(const std::string& cycle_id,
-                                    const CycleData& cycle_data,
-                                    const std::string& output_dir) -> void {
+                                     const CycleData& cycle_data,
+                                     const std::string& output_dir) -> void {
   fs::path cycle_dir = fs::path(output_dir) / cycle_id;
   try {
     fs::create_directories(cycle_dir);
@@ -154,14 +154,15 @@ auto MarkdownFormatter::ProcessCycle(const std::string& cycle_id,
   }
 
   for (const auto& [type, type_logs] : logs_by_type) {
-    ProcessType({.cycle_id = cycle_id, .type = type}, type_logs, cycle_data, cycle_dir);
+    ProcessType({.cycle_id = cycle_id, .type = type}, type_logs, cycle_data,
+                cycle_dir);
   }
 }
 
 auto MarkdownFormatter::ProcessType(const ReportParams& params,
-                                   const std::vector<LogEntry>& type_logs,
-                                   const CycleData& cycle_data,
-                                   const std::filesystem::path& cycle_dir)
+                                    const std::vector<LogEntry>& type_logs,
+                                    const CycleData& cycle_data,
+                                    const std::filesystem::path& cycle_dir)
     -> void {
   fs::path file_path = cycle_dir / (std::string(params.type) + ".md");
   std::ofstream md_file(file_path);
@@ -183,16 +184,28 @@ auto MarkdownFormatter::ProcessType(const ReportParams& params,
   md_file << "## 📊 Kinematics Dashboard\n";
   md_file << "| Metric | Value |\n";
   md_file << "| :--- | :--- |\n";
-  md_file << "| **Total Volume** | " << std::fixed << std::setprecision(1) << cycle_data.total_volume_ << " kg |\n";
-  md_file << "| **Avg Intensity** | " << cycle_data.average_intensity_ << " kg/rep |\n";
-  md_file << "| **Frequency** | " << (cycle_data.total_days_ > 0 ? static_cast<double>(cycle_data.session_count_) / (cycle_data.total_days_ / 7.0) : 0.0) << " sessions/week |\n";
-  
-  auto get_percent = [&](double vol) {
-    return (cycle_data.total_volume_ > 0) ? (vol / cycle_data.total_volume_ * 100.0) : 0.0;
+  md_file << "| **Total Volume** | " << std::fixed << std::setprecision(1)
+          << cycle_data.total_volume_ << " kg |\n";
+  md_file << "| **Avg Intensity** | " << cycle_data.average_intensity_
+          << " kg/rep |\n";
+  md_file << "| **Frequency** | "
+          << (cycle_data.total_days_ > 0
+                  ? static_cast<double>(cycle_data.session_count_) /
+                        (cycle_data.total_days_ / 7.0)
+                  : 0.0)
+          << " sessions/week |\n";
+
+  auto get_percent = [&](double vol) -> double {
+    return (cycle_data.total_volume_ > 0)
+               ? (vol / cycle_data.total_volume_ * 100.0)
+               : 0.0;
   };
-  md_file << "| **Dist. Power (1-5)** | " << get_percent(cycle_data.vol_power_) << "% |\n";
-  md_file << "| **Dist. Hyper (6-12)** | " << get_percent(cycle_data.vol_hypertrophy_) << "% |\n";
-  md_file << "| **Dist. Endure (13+)** | " << get_percent(cycle_data.vol_endurance_) << "% |\n\n";
+  md_file << "| **Dist. Power (1-5)** | " << get_percent(cycle_data.vol_power_)
+          << "% |\n";
+  md_file << "| **Dist. Hyper (6-12)** | "
+          << get_percent(cycle_data.vol_hypertrophy_) << "% |\n";
+  md_file << "| **Dist. Endure (13+)** | "
+          << get_percent(cycle_data.vol_endurance_) << "% |\n\n";
 
   md_file << "---\n\n";
 
@@ -234,20 +247,23 @@ auto MarkdownFormatter::ExportSummary(const std::vector<PRRecord>& prs,
   std::ofstream md_file(summary_path);
 
   if (!md_file.is_open()) {
-    std::cerr << "Error: Could not open summary file: " << summary_path << std::endl;
+    std::cerr << "Error: Could not open summary file: " << summary_path
+              << std::endl;
     return;
   }
 
   md_file << "# 🏆 Training Hall of Fame\n\n";
   md_file << "Generated on: " << __DATE__ << "\n\n";
-  
+
   md_file << "## 🚀 Personal Records (PRs)\n";
-  md_file << "| Exercise | Max Weight | Reps | Date | Est. 1RM (Epley) | Est. 1RM (Brzycki) |\n";
+  md_file << "| Exercise | Max Weight | Reps | Date | Est. 1RM (Epley) | Est. "
+             "1RM (Brzycki) |\n";
   md_file << "| :--- | :--- | :--- | :--- | :--- | :--- |\n";
-  
+
   for (const auto& pr : prs) {
-    md_file << "| **" << pr.exercise_name_ << "** | " << std::fixed << std::setprecision(1) << pr.max_weight_ << " kg | " 
-            << pr.reps_ << " | " << pr.date_ << " | " << pr.estimated_1rm_epley_ << " kg | " 
+    md_file << "| **" << pr.exercise_name_ << "** | " << std::fixed
+            << std::setprecision(1) << pr.max_weight_ << " kg | " << pr.reps_
+            << " | " << pr.date_ << " | " << pr.estimated_1rm_epley_ << " kg | "
             << pr.estimated_1rm_brzycki_ << " kg |\n";
   }
 

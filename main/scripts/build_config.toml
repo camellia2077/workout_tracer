@@ -1,0 +1,10 @@
+# build_config.toml
+# Default build configuration settings for the workout calculator
+
+[compiler]
+# Choice of compiler: "gcc" or "clang"
+type = "gcc"
+
+[warnings]
+# Warning level: "none" (minimal warnings) or "strict" (all warnings enabled)
+level = "none"

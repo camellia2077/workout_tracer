@@ -5,6 +5,8 @@
 
 #include <string>
 
+#include "application/exit_code.hpp"
+
 enum class ActionType { Validate, Convert, Insert, Export, Ingest, QueryPR, ListExercises, QueryCycles, QueryVolume };
 
 struct AppConfig {
@@ -18,7 +20,7 @@ struct AppConfig {
 
 class ActionHandler {
 public:
-  static auto Run(const AppConfig& config) -> bool;
+  static auto Run(const AppConfig& config) -> AppExitCode;
 };
 
 #endif // APPLICATION_ACTION_HANDLER_HPP_

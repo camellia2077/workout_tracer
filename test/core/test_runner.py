@@ -1,8 +1,8 @@
 # test_runner.py
 import os
 import shutil
-from models import TestConfig
-from step_executor import StepExecutor
+from core.models import TestConfig
+from core.step_executor import StepExecutor
 
 # ANSI color codes
 CYAN = '\033[96m'
@@ -44,6 +44,7 @@ class TestRunner:
 
             if not os.path.exists(source_path):
                 print(f"  {RED}错误: 源文件/目录未找到 '{source_path}'。{RESET}")
+                print(f"  {RED}绝对路径: {os.path.abspath(source_path)}{RESET}")
                 return False
 
             try:
@@ -73,7 +74,7 @@ class TestRunner:
 
     def _run_insertion_test(self):
         print(f"{CYAN}--- 5. Running Database Insertion Test ---{RESET}")
-        json_dir = os.path.join(self.config.test_run_dir, 'reprocessed_json')
+        json_dir = os.path.join(self.config.test_run_dir, 'output', 'data')
         if not os.path.exists(json_dir):
             print(f"  {RED}错误: 未找到 '{json_dir}' 目录。转换步骤可能已失败。{RESET}")
             return False

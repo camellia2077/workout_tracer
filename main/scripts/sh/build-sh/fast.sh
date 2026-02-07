@@ -9,4 +9,4 @@ SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 cd "$SCRIPT_DIR"
 
 echo "--- Starting Fast Build (Optimizations Disabled) ---"
-python build.py --fast
+python ../../build.py --fast "$@"

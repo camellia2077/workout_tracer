@@ -40,7 +40,7 @@ auto main(int argc, char** argv) -> int {
     return 1;
   }
 
-  bool success = ActionHandler::Run(config_opt.value());
+  auto exit_code = ActionHandler::Run(config_opt.value());
 
-  return success ? 0 : 1;
+  return static_cast<int>(exit_code);
 }

@@ -40,7 +40,7 @@ auto Serializer::Serialize(const std::vector<DailyData>& processed_data)
   cJSON_AddStringToObject(root.get(), "cycle_id", start_date.c_str());
   cJSON_AddStringToObject(root.get(), "type", "mixed");
   cJSON_AddNumberToObject(root.get(), "total_days",
-                           static_cast<double>(processed_data.size()));
+                          static_cast<double>(processed_data.size()));
 
   cJSON* j_sessions = cJSON_AddArrayToObject(root.get(), "sessions");
 

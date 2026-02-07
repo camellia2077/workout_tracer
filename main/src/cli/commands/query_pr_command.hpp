@@ -17,8 +17,7 @@ public:
     return "Query historical Personal Records (PRs).";
   }
 
-  auto Parse(const std::vector<std::string>& args, AppConfig& config) -> bool override {
-    (void)args;
+  auto Parse([[maybe_unused]] const std::vector<std::string>& args, AppConfig& config) -> bool override {
     config.action_ = ActionType::QueryPR;
     return true;
   }

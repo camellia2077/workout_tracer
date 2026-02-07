@@ -1,8 +1,7 @@
 # test_config.toml
 
 [paths]
-# C++ 项目编译后 workout_tracker_cli.exe 所在的构建目录
-build_dir = 'C:/Computer/my_github/github_cpp/workout_calculator/workout_calculator/main/build'
+# build_dir is now provided via command-line argument (--build-dir)
 
 # 存放原始训练日志 (.txt 文件) 的目录
 input_dir = 'C:/Computer/my_github/github_cpp/workout_calculator/RECORD'

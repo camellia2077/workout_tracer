@@ -35,6 +35,12 @@ struct ProjectData {
   int line_number_;            // 该项目在文件中的起始行号
 };
 
+/**
+ * DailyData is the core data model within the system.
+ * By using native C++ structs for internal data flow instead of generic JSON objects,
+ * we eliminate unnecessary serialization/deserialization overhead and ensure 
+ * type safety throughout the application layers.
+ */
 struct DailyData {
   std::string date_;
   std::string note_;

@@ -8,6 +8,15 @@ function(setup_compiler_flags)
         add_compile_options(-fdiagnostics-color=always)
     endif()
 
+    # Warning Level Handling
+    if(WARNING_LEVEL STREQUAL "STRICT")
+        message(STATUS "Strict warnings enabled: -Wall -Wextra -Werror")
+        add_compile_options(-Wall -Wextra -Werror)
+    elseif(WARNING_LEVEL STREQUAL "NONE")
+        message(STATUS "Minimal warnings enabled: -w")
+        add_compile_options(-w)
+    endif()
+
     # Release 优化
     if(FAST_BUILD)
         message(STATUS "Fast build enabled: Disabling optimizations (-O0)")

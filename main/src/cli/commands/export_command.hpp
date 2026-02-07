@@ -18,7 +18,7 @@ public:
     return "Export all data from the database to Markdown files.";
   }
 
-  auto Parse(const std::vector<std::string>& args, AppConfig& config) -> bool override {
+  auto Parse([[maybe_unused]] const std::vector<std::string>& args, AppConfig& config) -> bool override {
     if (args.size() > 1) {
       std::cerr
           << "Error: 'export' command does not take any additional arguments."

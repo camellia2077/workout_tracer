@@ -13,6 +13,6 @@ SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 # 切换到该目录，确保 Python 脚本在正确的项目根目录下执行
 cd "$SCRIPT_DIR"
 
-# 执行 Python 编译脚本 (默认为 Release 模式)
+# Execute Python build script (defaulting to Release mode)
 echo "--- Starting Release Build (Ninja) ---"
-python build.py
+python ../../build.py "$@"

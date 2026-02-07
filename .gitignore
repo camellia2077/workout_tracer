@@ -1,6 +1,7 @@
 build/
-build_debug/
-build_fast/
+build_*/
+/bin/
+!bin/config/
 my_test/
 RECORD/
 .vscode/

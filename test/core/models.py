@@ -34,6 +34,10 @@ class TestConfig:
     copy_items: List[CopyItem] = field(default_factory=list)
 
     @property
+    def build_dir(self) -> str:
+        return self.paths.build_dir
+
+    @property
     def test_run_dir(self) -> str:
         import os
         return os.path.join(self.paths.test_output_parent_dir, self.names.test_output_dir_name)

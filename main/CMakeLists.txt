@@ -25,6 +25,11 @@ include(TargetSetup)
 # --- 3. 应用设置 ---
 setup_compiler_flags()
 
+# Set output directory for executables to bin/
+# This separates final artifacts from build intermediates
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/bin")
+message(STATUS "Executable output directory: ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")
+
 # 导出编译数据库 (用于 clang-tidy)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 

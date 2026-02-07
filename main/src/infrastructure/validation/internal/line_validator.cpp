@@ -35,8 +35,8 @@ auto LineValidator::ValidateLine(const std::string& line,
 }
 
 auto LineValidator::HandleYearState(const std::string& line,
-                                   const ValidationRules& rules,
-                                   int& error_count) -> bool {
+                                    const ValidationRules& rules,
+                                    int& error_count) -> bool {
   if (state_.current_state != StateType::EXPECTING_YEAR) {
     return false;
   }
@@ -46,7 +46,8 @@ auto LineValidator::HandleYearState(const std::string& line,
     return true;
   }
 
-  std::cerr << "Error: [Validator] Invalid format at line " << state_.line_counter
+  std::cerr << "Error: [Validator] Invalid format at line "
+            << state_.line_counter
             << ". Expected a year declaration (e.g., y2025) at the "
                "beginning of the file."
             << std::endl;
@@ -56,8 +57,8 @@ auto LineValidator::HandleYearState(const std::string& line,
 }
 
 auto LineValidator::HandleDateMatch(const std::string& line,
-                                   const ValidationRules& rules,
-                                   int& error_count) -> bool {
+                                    const ValidationRules& rules,
+                                    int& error_count) -> bool {
   if (!std::regex_match(line, rules.date_regex)) {
     return false;
   }
@@ -81,8 +82,8 @@ auto LineValidator::HandleDateMatch(const std::string& line,
 }
 
 auto LineValidator::HandleNoteMatch(const std::string& line,
-                                   const ValidationRules& rules,
-                                   int& error_count) -> bool {
+                                    const ValidationRules& rules,
+                                    int& error_count) -> bool {
   if (!std::regex_match(line, rules.note_regex)) {
     return false;
   }
@@ -106,8 +107,8 @@ auto LineValidator::HandleNoteMatch(const std::string& line,
 }
 
 auto LineValidator::HandleContentMatch(const std::string& line,
-                                      const ValidationRules& rules,
-                                      int& error_count) -> bool {
+                                       const ValidationRules& rules,
+                                       int& error_count) -> bool {
   if (line[0] != '+' && line[0] != '-') {
     return false;
   }
@@ -132,8 +133,8 @@ auto LineValidator::HandleContentMatch(const std::string& line,
 }
 
 auto LineValidator::HandleTitleMatch(const std::string& line,
-                                    const ValidationRules& rules,
-                                    int& error_count) -> bool {
+                                     const ValidationRules& rules,
+                                     int& error_count) -> bool {
   if (!std::regex_match(line, rules.title_regex)) {
     return false;
   }

@@ -7,7 +7,7 @@
 #include "infrastructure/config/file_mapping_provider.hpp"
 #include "infrastructure/converter/log_parser.hpp"
 
-auto ActionHandler::Run(const AppConfig& config) -> bool {
+auto ActionHandler::Run(const AppConfig& config) -> AppExitCode {
   if (config.action_ == ActionType::Validate ||
       config.action_ == ActionType::Convert) {
     LogParser parser;
@@ -34,10 +34,12 @@ auto ActionHandler::Run(const AppConfig& config) -> bool {
         file_processor.ProcessFile({.file_path_ = config.log_filepath_,
                                     .mapping_path_ = config.mapping_path_});
     if (data_opt.has_value()) {
+      // Direct insertion of native C++ structs into the database
+      // to avoid unnecessary JSON conversion overhead.
       return DatabaseHandler::InsertData(data_opt.value(), config);
     }
-    return false;
+    return AppExitCode::kProcessingError;
   }
 
-  return false;
+  return AppExitCode::kUnknownError;
 }

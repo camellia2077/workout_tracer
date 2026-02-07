@@ -20,51 +20,68 @@ FileProcessorHandler::FileProcessorHandler(ILogParser& parser,
                                            IMappingProvider& mapping_provider)
     : converter_(parser, mapping_provider), validator_(mapping_provider) {}
 
-auto FileProcessorHandler::Handle(const AppConfig& config) -> bool {
+auto FileProcessorHandler::Handle(const AppConfig& config) -> AppExitCode {
   if (!converter_.Configure(config.mapping_path_)) {
-    return false;
+    return AppExitCode::kProcessingError;
   }
 
   std::vector<std::string> files_to_process =
       FileReader::FindFilesByExtension(config.log_filepath_, ".txt");
   if (files_to_process.empty()) {
     std::cout << "Warning: No .txt files found to process." << std::endl;
-    return true;
+    return AppExitCode::kSuccess;
   }
 
   int success_count = 0;
+  AppExitCode last_error = AppExitCode::kSuccess;
+
   for (const auto& file_path : files_to_process) {
-    if (ProcessSingleFile(file_path, config)) {
+    AppExitCode result = ProcessSingleFile(file_path, config);
+    if (result == AppExitCode::kSuccess) {
       success_count++;
+    } else {
+      last_error = result;
     }
   }
 
   std::cout << "Processing complete. " << success_count << " of "
             << files_to_process.size() << " files handled successfully."
             << std::endl;
-  return std::cmp_equal(success_count, files_to_process.size());
+  
+  return (success_count == static_cast<int>(files_to_process.size())) 
+         ? AppExitCode::kSuccess 
+         : last_error;
 }
 
 auto FileProcessorHandler::ProcessSingleFile(const std::string& file_path,
-                                             const AppConfig& config) -> bool {
+                                             const AppConfig& config) -> AppExitCode {
   std::cout << "===== File: " << file_path << " =====" << std::endl;
-  bool result = false;
+  AppExitCode result = AppExitCode::kUnknownError;
 
   if (config.action_ == ActionType::Validate) {
     std::cout << "Performing validation..." << std::endl;
     std::ifstream file(file_path);
-    if (file.is_open() && validator_.Validate(file, config.mapping_path_)) {
-      std::cout << "Validation successful." << std::endl;
-      result = true;
+    if (file.is_open()) {
+      if (validator_.Validate(file, config.mapping_path_)) {
+        std::cout << "Validation successful." << std::endl;
+        result = AppExitCode::kSuccess;
+      } else {
+        std::cerr << "Validation failed." << std::endl;
+        result = AppExitCode::kValidationError;
+      }
     } else {
-      std::cerr << "Validation failed." << std::endl;
+      std::cerr << "Error: Failed to open file for validation: " << file_path << std::endl;
+      result = AppExitCode::kFileNotFound;
     }
   } else if (config.action_ == ActionType::Convert) {
     std::cout << "Performing conversion..." << std::endl;
     std::ifstream val_file(file_path);
-    if (!val_file.is_open() ||
-        !validator_.Validate(val_file, config.mapping_path_)) {
+    if (!val_file.is_open()) {
+        std::cerr << "Error: Failed to open file: " << file_path << std::endl;
+        result = AppExitCode::kFileNotFound;
+    } else if (!validator_.Validate(val_file, config.mapping_path_)) {
       std::cerr << "Validation failed, skipping conversion." << std::endl;
+      result = AppExitCode::kValidationError;
     } else {
       val_file.close();
       auto processed_data_opt = converter_.Convert(file_path);
@@ -72,7 +89,7 @@ auto FileProcessorHandler::ProcessSingleFile(const std::string& file_path,
       if (processed_data_opt.has_value() &&
           !processed_data_opt.value().empty()) {
         try {
-          const std::string kOutputDirBase = "reprocessed_json";
+          const std::string kOutputDirBase = "output/data";
           fs::path reprocessed_base_path =
               fs::path(config.base_path_) / kOutputDirBase;
 
@@ -88,22 +105,25 @@ auto FileProcessorHandler::ProcessSingleFile(const std::string& file_path,
           std::cout << "Writing converted data to '" << output_filepath.string()
                     << "'..." << std::endl;
           if (WriteStringToFile(output_filepath.string(), output_content)) {
-            result = true;
+            result = AppExitCode::kSuccess;
             std::cout << "Conversion successful." << std::endl;
           } else {
             std::cerr << "Error writing file." << std::endl;
+            result = AppExitCode::kProcessingError;
           }
 
         } catch (const fs::filesystem_error& e) {
           std::cerr << "Filesystem error during output: " << e.what()
                     << std::endl;
+          result = AppExitCode::kProcessingError;
         }
       } else if (processed_data_opt.has_value()) {
         std::cout << "Conversion resulted in no data, skipping output."
                   << std::endl;
-        result = true;
+        result = AppExitCode::kSuccess;
       } else {
         std::cerr << "Conversion failed." << std::endl;
+        result = AppExitCode::kProcessingError;
       }
     }
   }

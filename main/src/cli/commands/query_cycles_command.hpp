@@ -17,7 +17,7 @@ public:
     return "Query all stored training cycles.";
   }
 
-  auto Parse(const std::vector<std::string>& args, AppConfig& config) -> bool override {
+  auto Parse([[maybe_unused]] const std::vector<std::string>& args, AppConfig& config) -> bool override {
     config.action_ = ActionType::QueryCycles;
     return true;
   }

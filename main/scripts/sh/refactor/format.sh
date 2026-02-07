@@ -9,4 +9,4 @@ SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 cd "$SCRIPT_DIR"
 
 echo "--- Running Clang-Format ---"
-python build.py --format
+python ../../build.py --format

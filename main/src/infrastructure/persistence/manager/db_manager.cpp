@@ -82,9 +82,8 @@ auto DbManager::CreateTables() -> bool {
         SQLITE_OK) {
       while (sqlite3_step(stmt) == SQLITE_ROW) {
         const unsigned char* col_text = sqlite3_column_text(stmt, 1);
-        if (col_text != nullptr &&
-            std::string(reinterpret_cast<const char*>(col_text)) ==
-                params.column_name) {
+        if (col_text != nullptr && std::string(reinterpret_cast<const char*>(
+                                       col_text)) == params.column_name) {
           has_column = true;
           break;
         }
@@ -97,8 +96,8 @@ auto DbManager::CreateTables() -> bool {
       return true;
     }
     std::string alter_sql = "ALTER TABLE " + std::string(params.table_name) +
-                            " ADD COLUMN " + std::string(params.column_definition) +
-                            ";";
+                            " ADD COLUMN " +
+                            std::string(params.column_definition) + ";";
     if (sqlite3_exec(db_, alter_sql.c_str(), nullptr, nullptr, &z_err_msg) !=
         SQLITE_OK) {
       std::cerr << "SQL error adding " << params.column_name

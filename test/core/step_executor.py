@@ -1,7 +1,7 @@
 # step_executor.py
 import os
 import subprocess
-from models import TestConfig
+from core.models import TestConfig
 
 # ANSI color codes
 GREEN = '\033[92m'
@@ -23,6 +23,15 @@ class StepExecutor:
         print(f"     工作目录: {self.config.test_run_dir}")
         print(f"     日志文件: {log_path}", end='', flush=True)
 
+        EXIT_CODE_MAP = {
+            1: "Invalid Arguments",
+            2: "Validation Failed",
+            3: "File Not Found (or Invalid Path)",
+            4: "Database Error",
+            5: "Processing Error",
+            99: "Unknown Error"
+        }
+
         try:
             result = subprocess.run(
                 full_command, capture_output=True, text=True, encoding='utf-8', 
@@ -36,10 +45,12 @@ class StepExecutor:
                 print(f"  ... {GREEN}OK{RESET}")
                 return True
             else:
-                print(f"  ... {RED}FAILED{RESET}")
+                error_desc = EXIT_CODE_MAP.get(result.returncode, "Unexpected Error")
+                print(f"  ... {RED}FAILED{RESET} ({error_desc}, Code: {result.returncode})")
+                
                 # 将错误输出写入日志，方便调试
                 with open(log_path, 'a', encoding='utf-8') as f:
-                    f.write("\n\n=== STDERR ===\n")
+                    f.write(f"\n\n=== ERROR: {error_desc} (Exit Code: {result.returncode}) ===\n")
                     f.write(result.stderr)
                 return False
         except Exception as e:

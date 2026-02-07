@@ -19,7 +19,7 @@ class FileProcessorHandler {
 public:
   FileProcessorHandler(ILogParser& parser, IMappingProvider& mapping_provider);
   
-  [[nodiscard]] auto Handle(const AppConfig& config) -> bool;
+  [[nodiscard]] auto Handle(const AppConfig& config) -> AppExitCode;
   [[nodiscard]] auto ProcessFile(const FileProcessingOptions& options)
       -> std::optional<std::vector<DailyData>>;
 
@@ -27,7 +27,7 @@ private:
   [[nodiscard]] static auto WriteStringToFile(const std::string& file_path,
                                               const std::string& content) -> bool;
   
-  [[nodiscard]] auto ProcessSingleFile(const std::string& file_path, const AppConfig& config) -> bool;
+  [[nodiscard]] auto ProcessSingleFile(const std::string& file_path, const AppConfig& config) -> AppExitCode;
 
   Converter converter_;
   Validator validator_;
