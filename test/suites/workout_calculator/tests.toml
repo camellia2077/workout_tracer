@@ -1,0 +1,76 @@
+# Table-driven command scenarios for workout_calculator
+
+[run_control]
+enable_test_execution = 1
+stop_on_failure = 1
+
+[pipeline]
+mode = "none"
+
+[paths]
+test_data_path = "../../data/records"
+
+[[commands]]
+name = "Validate Records"
+stage = "pipeline"
+args = ["validate", "{data_path}"]
+expect_exit = 0
+
+[[commands]]
+name = "Convert Records"
+stage = "pipeline"
+args = ["convert", "{data_path}"]
+expect_exit = 0
+expect_files = [
+  "{processed_json_dir}/2025_7.json",
+  "{processed_json_dir}/2025_9.json"
+]
+
+[[commands]]
+name = "Insert Converted JSON"
+stage = "pipeline"
+args = ["insert", "{processed_json_dir}"]
+expect_exit = 0
+expect_files = ["{db_path}"]
+
+[[commands]]
+name = "Export Reports"
+stage = "pipeline"
+args = ["export"]
+expect_exit = 0
+expect_files = ["{exe_dir}/output/reports/Summary.md"]
+
+[[commands]]
+name = "Query Cycles"
+stage = "query"
+args = ["cycles"]
+expect_exit = 0
+expect_stdout_contains = ["Training Cycles"]
+
+[[commands]]
+name = "List Exercises"
+stage = "query"
+args = ["list"]
+expect_exit = 0
+expect_stdout_contains = ["Exercises"]
+
+[[commands]]
+name = "List Push Exercises"
+stage = "query"
+args = ["list", "--type", "push"]
+expect_exit = 0
+expect_stdout_contains = ["[push]"]
+
+[[commands]]
+name = "Query Personal Records"
+stage = "query"
+args = ["pr"]
+expect_exit = 0
+expect_stdout_contains = ["Personal Records"]
+
+[[commands]]
+name = "Query Push Volume"
+stage = "query"
+args = ["volume", "--type", "push", "--cycle", "2025-07-05"]
+expect_exit = 0
+expect_stdout_contains = ["Advanced Kinematics Analysis"]

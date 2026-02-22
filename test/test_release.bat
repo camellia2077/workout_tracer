@@ -1,4 +1,6 @@
 @echo off
-pushd "%~dp0"
-python run.py test --build-dir "C:/Computer/my_github/github_cpp/workout_calculator/workout_calculator/main/build/bin"
-popd
+cd /d %~dp0
+
+python run.py --suite workout_calculator --build-dir build_agent --no-format-on-success %*
+
+exit /b %ERRORLEVEL%
