@@ -180,7 +180,7 @@ auto MarkdownFormatter::ProcessType(const ReportParams& params,
   md_file << "**Cycle:** `" << params.cycle_id << "`\n\n";
 
   // Fixed Kinematics Dashboard
-  md_file << "## 📊 Kinematics Dashboard\n";
+  md_file << "## Kinematics Dashboard\n";
   md_file << "| Metric | Value |\n";
   md_file << "| :--- | :--- |\n";
   md_file << "| **Total Volume** | " << std::fixed << std::setprecision(1)
@@ -248,10 +248,10 @@ auto MarkdownFormatter::ExportSummary(const std::vector<PRRecord>& prs,
     return;
   }
 
-  md_file << "# 🏆 Training Hall of Fame\n\n";
+  md_file << "# Training Hall of Fame\n\n";
   md_file << "Generated on: " << __DATE__ << "\n\n";
 
-  md_file << "## 🚀 Personal Records (PRs)\n";
+  md_file << "## Personal Records (PRs)\n";
   md_file << "| Exercise | Max Weight | Reps | Date | Est. 1RM (Epley) | Est. "
              "1RM (Brzycki) |\n";
   md_file << "| :--- | :--- | :--- | :--- | :--- | :--- |\n";

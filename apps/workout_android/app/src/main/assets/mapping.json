@@ -1,0 +1,22 @@
+{
+    "bp": {
+        "fullName": "Bench Press",
+        "type": "push"
+    },
+    "bbp": {
+        "fullName": "Bar Bell Press",
+        "type": "push"
+    },
+    "pu":{
+        "fullName": "Pull Up",
+        "type": "pull"
+    },
+    "sq": {
+        "fullName": "Squat",
+        "type": "squat"
+    },
+    "dl": {
+        "fullName": "Deadlift",
+        "type": "pull"
+    }
+}

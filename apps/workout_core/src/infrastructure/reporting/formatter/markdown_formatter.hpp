@@ -4,6 +4,7 @@
 #define REPORT_FORMATTER_MARKDOWN_FORMATTER_HPP_
 
 #include "../database/database_manager.hpp"
+#include <filesystem>
 #include <iostream>
 #include <map>
 #include <string>

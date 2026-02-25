@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">Workout Calculator</string>
+    <string name="title_main">Workout Core MVP</string>
+    <string name="action_ingest">Ingest Test Data</string>
+    <string name="action_query">Query Data</string>
+    <string name="label_exercises">Exercises</string>
+    <string name="label_prs">Personal Records</string>
+    <string name="label_idle">Ready.</string>
+</resources>

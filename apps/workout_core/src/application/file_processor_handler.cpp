@@ -10,11 +10,54 @@
 #include <utility>
 #include <vector>
 
-#include "common/file_reader.hpp"
 #include "infrastructure/serializer/serializer.hpp"
 #include "infrastructure/validation/validator.hpp"
 
 namespace fs = std::filesystem;
+
+namespace {
+auto IsSupportedLogExtension(const fs::path& file_path) -> bool {
+  const std::string extension = file_path.extension().string();
+  return extension == ".txt" || extension == ".md";
+}
+
+auto CollectLogFiles(const std::string& path) -> std::vector<std::string> {
+  std::vector<std::string> file_paths;
+
+  if (!fs::exists(path)) {
+    std::cerr << "Error: Input path does not exist: " << path << std::endl;
+    return file_paths;
+  }
+
+  if (fs::is_directory(path)) {
+    for (const auto& entry : fs::recursive_directory_iterator(path)) {
+      if (!entry.is_regular_file()) {
+        continue;
+      }
+      if (IsSupportedLogExtension(entry.path())) {
+        file_paths.push_back(entry.path().string());
+      }
+    }
+    return file_paths;
+  }
+
+  if (fs::is_regular_file(path)) {
+    const fs::path file_path(path);
+    if (IsSupportedLogExtension(file_path)) {
+      file_paths.push_back(path);
+      return file_paths;
+    }
+
+    std::cerr << "Warning: Unsupported log extension for file: " << path
+              << std::endl;
+    return file_paths;
+  }
+
+  std::cerr << "Error: Input path is neither file nor directory: " << path
+            << std::endl;
+  return file_paths;
+}
+}  // namespace
 
 FileProcessorHandler::FileProcessorHandler(ILogParser& parser,
                                            IMappingProvider& mapping_provider)
@@ -26,9 +69,9 @@ auto FileProcessorHandler::Handle(const AppConfig& config) -> AppExitCode {
   }
 
   std::vector<std::string> files_to_process =
-      FileReader::FindFilesByExtension(config.log_filepath_, ".txt");
+      CollectLogFiles(config.log_filepath_);
   if (files_to_process.empty()) {
-    std::cout << "Warning: No .txt files found to process." << std::endl;
+    std::cout << "Warning: No .txt or .md files found to process." << std::endl;
     return AppExitCode::kSuccess;
   }
 

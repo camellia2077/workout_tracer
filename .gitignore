@@ -7,3 +7,16 @@ my_test/
 RECORD/
 .vscode/
 __pycache__/
+
+# Android Studio / Gradle generated files
+apps/workout_android/.gradle/
+apps/workout_android/.idea/
+apps/workout_android/local.properties
+apps/workout_android/**/.cxx/
+apps/workout_android/**/.externalNativeBuild/
+apps/workout_android/**/.kotlin/
+apps/workout_android/**/build/
+apps/workout_android/**/captures/
+apps/workout_android/**/*.iml
+apps/workout_android/**/*.apk
+apps/workout_android/**/*.aab
