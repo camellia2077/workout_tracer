@@ -25,7 +25,7 @@ bool Reprocessor::configure(const std::string& mappingFilePath) {
 bool Reprocessor::validateFile(const std::string& logFilePath, const std::string& mappingFilePath) const {
     // 直接将任务委托给 Validator
     return Validator::validate(logFilePath, mappingFilePath);
-} // <-- ADDED: Missing curly brace
+}
 
 /**
  * @brief (新) 纯解析接口的实现

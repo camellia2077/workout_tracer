@@ -3,7 +3,7 @@
 
 ## 目录结构
 ```
-.
+/
 ├── build.sh
 ├── CMakeLists.txt
 ├── main.cpp
