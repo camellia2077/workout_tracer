@@ -1,4 +1,4 @@
-#include "LogParser.h"
+#include "LogParser.hpp"
 #include <fstream>
 #include <sstream>
 #include <iostream>

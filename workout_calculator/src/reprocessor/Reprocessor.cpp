@@ -1,7 +1,7 @@
 // Reprocessor.cpp
 
-#include "reprocessor/Reprocessor.h"
-#include "common/JsonReader.h" 
+#include "reprocessor/Reprocessor.hpp"
+#include "common/JsonReader.hpp" 
 
 #include <iostream>
 #include <chrono>

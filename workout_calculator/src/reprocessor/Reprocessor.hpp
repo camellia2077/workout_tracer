@@ -1,4 +1,4 @@
-// Reprocessor.h
+// Reprocessor.hpp
 
 #ifndef REPROCESSOR_H
 #define REPROCESSOR_H
@@ -7,13 +7,13 @@
 #include <vector>
 #include <optional>
 
-#include "common/parsed_data.h"
-#include "reprocessor/log_parser/LogParser.h"
-#include "reprocessor/name_mapper/ProjectNameMapper.h"
-#include "reprocessor/log_formatter/LogFormatter.h"
-#include "reprocessor/volume_calculator/VolumeCalculator.h"
-#include "reprocessor/date_processor/DateProcessor.h"
-#include "reprocessor/validator/Validator.h"
+#include "common/parsed_data.hpp"
+#include "reprocessor/log_parser/LogParser.hpp"
+#include "reprocessor/name_mapper/ProjectNameMapper.hpp"
+#include "reprocessor/log_formatter/LogFormatter.hpp"
+#include "reprocessor/volume_calculator/VolumeCalculator.hpp"
+#include "reprocessor/date_processor/DateProcessor.hpp"
+#include "reprocessor/validator/Validator.hpp"
 
 class Reprocessor {
 public:

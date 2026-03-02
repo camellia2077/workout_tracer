@@ -1,5 +1,5 @@
-#include "Validator.h"
-#include "common/JsonReader.h"
+#include "Validator.hpp"
+#include "common/JsonReader.hpp"
 #include <fstream>
 #include <iostream>
 #include <sstream>

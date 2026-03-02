@@ -1,4 +1,4 @@
-#include "LogRepository.h"
+#include "LogRepository.hpp"
 #include "sqlite3.h" // 需要用于预处理语句相关的API
 #include <iostream>
 #include <sstream>

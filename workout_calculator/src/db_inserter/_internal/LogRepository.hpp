@@ -3,8 +3,8 @@
 
 #include <string>
 #include <vector>
-#include "common/parsed_data.h" // 引用共享的数据结构
-#include "Database.h"           // 依赖于新的 Database 类
+#include "common/parsed_data.hpp" // 引用共享的数据结构
+#include "Database.hpp"           // 依赖于新的 Database 类
 // 数据仓库，专门负责 DailyData 的持久化逻辑
 class LogRepository {
 public:

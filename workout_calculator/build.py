@@ -1,15 +1,13 @@
 import os
 import subprocess
 import sys
+import time  # 1. 导入 time 模块
 from pathlib import Path
 
 def run_command(command, cwd):
     """Executes a command in a specified directory and checks for errors."""
     print(f"--- Running command: {' '.join(command)} in '{cwd}'")
     try:
-        # shell=True is generally not recommended, but can be necessary on Windows
-        # for commands like 'cmake' if they are not directly in the system PATH
-        # in a way Python's subprocess can find them. For MSYS2/MinGW, it's often fine.
         is_windows = sys.platform.startswith('win')
         subprocess.run(command, cwd=cwd, check=True, shell=is_windows)
     except (subprocess.CalledProcessError, FileNotFoundError) as e:
@@ -19,14 +17,16 @@ def run_command(command, cwd):
 
 def main():
     """Main function to configure and build the project."""
-    # The script's directory is the project's root directory
+    # 2. 在 main 函数开始时记录开始时间
+    start_time = time.monotonic()
+
     project_root = Path(__file__).parent.resolve()
     os.chdir(project_root)
     print(f"Switched to script directory: {project_root}")
 
     build_dir = project_root / "build"
 
-    # 1. Prepare build directory
+    # 准备构建目录
     print(f"\n--- Preparing build directory ---")
     if not build_dir.exists():
         print(f"Build directory '{build_dir.name}' not found. Creating it...")
@@ -34,7 +34,7 @@ def main():
     else:
         print(f"Using existing build directory '{build_dir.name}'.")
 
-    # 2. Configure project with CMake
+    # 配置项目
     print(f"\n--- Configuring project with CMake+Ninja for Release build ---")
     cmake_configure_command = [
         "cmake",
@@ -44,7 +44,7 @@ def main():
     ]
     run_command(cmake_configure_command, cwd=build_dir)
 
-    # 3. Compile project
+    # 编译项目
     print(f"\n--- Compiling project in Release mode with Ninja ---")
     cmake_build_command = [
         "cmake",
@@ -55,6 +55,11 @@ def main():
 
     print(f"\n--- Build process finished successfully! ---")
     print(f"Executables are located at: {build_dir}")
+
+    # 3. 计算并打印总耗时
+    end_time = time.monotonic()
+    duration = end_time - start_time
+    print(f"\n--- Total build time: {duration:.2f} seconds ---")
 
 if __name__ == "__main__":
     main()

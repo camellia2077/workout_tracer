@@ -1,4 +1,4 @@
-#include "reprocessor/name_mapper/ProjectNameMapper.h"
+#include "reprocessor/name_mapper/ProjectNameMapper.hpp"
 #include <iostream>
 
 bool ProjectNameMapper::loadMappings(const nlohmann::json& jsonData) {

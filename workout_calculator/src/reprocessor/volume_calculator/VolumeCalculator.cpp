@@ -1,4 +1,4 @@
-#include "VolumeCalculator.h"
+#include "VolumeCalculator.hpp"
 #include <numeric> // 用于 std::accumulate
 
 void VolumeCalculator::calculateVolume(std::vector<DailyData>& allData) {

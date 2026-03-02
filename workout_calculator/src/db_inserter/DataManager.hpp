@@ -1,9 +1,9 @@
 #ifndef DATA_MANAGER_H
 #define DATA_MANAGER_H
 
-#include "db_inserter/_internal/Database.h"
-#include "db_inserter/_internal/LogRepository.h"
-#include "common/parsed_data.h" // 数据结构头文件路径
+#include "db_inserter/_internal/Database.hpp"
+#include "db_inserter/_internal/LogRepository.hpp"
+#include "common/parsed_data.hpp" // 数据结构头文件路径
 #include <string>
 #include <vector>
 #include <memory>

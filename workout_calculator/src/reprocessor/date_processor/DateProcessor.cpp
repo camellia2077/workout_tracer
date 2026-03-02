@@ -1,4 +1,4 @@
-#include "DateProcessor.h"
+#include "DateProcessor.hpp"
 
 void DateProcessor::completeDates(std::vector<DailyData>& allData, int yearToUse) {
     for (auto& daily : allData) {

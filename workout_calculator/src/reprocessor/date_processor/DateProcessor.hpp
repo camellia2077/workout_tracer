@@ -2,7 +2,7 @@
 #define DATE_PROCESSOR_H
 
 #include <vector>
-#include "common/parsed_data.h"
+#include "common/parsed_data.hpp"
 
 class DateProcessor {
 public:

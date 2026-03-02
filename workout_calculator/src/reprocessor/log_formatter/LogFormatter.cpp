@@ -1,4 +1,4 @@
-#include "LogFormatter.h"
+#include "LogFormatter.hpp"
 #include <sstream>
 #include <iomanip>
 

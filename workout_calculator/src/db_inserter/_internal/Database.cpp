@@ -1,4 +1,4 @@
-#include "Database.h"
+#include "Database.hpp"
 #include <iostream>
 
 Database::Database() {}
