@@ -8,50 +8,103 @@ project(WorkoutParser VERSION 1.0 LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# --- 自动查找您项目的所有源文件 ---
-# (这部分您的写法是正确的，我们保持不变)
-file(GLOB COMMON_SOURCES "common/*.cpp")
-file(GLOB_RECURSE REPROCESSOR_SOURCES "reprocessor/*.cpp")
-file(GLOB_RECURSE DB_INSERTER_SOURCES "db_inserter/*.cpp")
-
-
-# --- KEY FIX #1: 查找已安装的库 ---
-# 查找 nlohmann_json (您的文件中已有)
+# --- 查找整个项目都需要的库 ---
 find_package(nlohmann_json REQUIRED)
-# 查找 SQLite3 (这是您文件中缺少的)
 find_package(SQLite3 REQUIRED)
 
 
-# --- 定义可执行文件 ---
-# (这部分您的写法是正确的)
+# ===================================================================
+# 目标 1: 交互式菜单应用 (Interactive App)
+# ===================================================================
+
+# --- 仅为交互式应用收集其所需的源文件 ---
+message(STATUS "Gathering sources for 'workout_tracker_app'...")
+file(GLOB COMMON_SOURCES "common/*.cpp")
+file(GLOB REPROCESSOR_SOURCES 
+    "reprocessor/*.cpp"
+    "reprocessor/volume_calculator/*.cpp"
+    "reprocessor/date_processor/*.cpp"
+    "reprocessor/log_formatter/*.cpp"
+    "reprocessor/log_parser/*.cpp"
+    "reprocessor/name_mapper/*.cpp"
+    "reprocessor/validator/*.cpp"
+)
+file(GLOB DB_INSERTER_SOURCES 
+    "db_inserter/*.cpp"
+    "db_inserter/_internal/*.cpp"
+)
+file(GLOB CONTROLLER_SOURCES "controller/*.cpp")
+
 add_executable(
-    workout_tracker
-    main.cpp
+    workout_tracker_app          # 可执行文件名
+    main_app.cpp                 # 入口文件
     ${COMMON_SOURCES}
     ${REPROCESSOR_SOURCES}
     ${DB_INSERTER_SOURCES}
+    ${CONTROLLER_SOURCES}
 )
 
-
-# --- 为目标添加头文件搜索路径 ---
-# (您的“宏观路径法”很好，保持不变。find_package会自动处理库的头文件路径)
+# ]为交互式应用设置头文件路径 
 target_include_directories(
-    workout_tracker
+    workout_tracker_app
     PRIVATE
-    # ${CMAKE_CURRENT_SOURCE_DIR} 是项目根目录的绝对路径
     ${CMAKE_CURRENT_SOURCE_DIR}
 )
 
-
-# --- KEY FIX #2: 链接到找到的库目标 ---
+# 为交互式应用链接库
 target_link_libraries(
-    workout_tracker
+    workout_tracker_app
     PRIVATE 
     nlohmann_json::nlohmann_json 
-    SQLite::SQLite3 # <-- 这是最关键的修复：链接到 SQLite3
+    SQLite::SQLite3 
 )
 
 
-# 打印出可执行文件位置，方便调试 
-message(STATUS "Successfully configured workout_tracker.")
-message(STATUS "Executable will be created at: ${CMAKE_BINARY_DIR}/workout_tracker.exe")
+# ===================================================================
+# 目标 2: 命令行工具 (Command-Line Tool)
+# ===================================================================
+
+# --- 仅为命令行工具收集其所需的源文件 ---
+message(STATUS "Gathering sources for 'workout_tracker_cli'...")
+file(GLOB COMMON_SOURCES "common/*.cpp")
+file(GLOB REPROCESSOR_SOURCES 
+    "reprocessor/*.cpp"
+    "reprocessor/volume_calculator/*.cpp"
+    "reprocessor/date_processor/*.cpp"
+    "reprocessor/log_formatter/*.cpp"
+    "reprocessor/log_parser/*.cpp"
+    "reprocessor/name_mapper/*.cpp"
+    "reprocessor/validator/*.cpp"
+)
+file(GLOB DB_INSERTER_SOURCES 
+    "db_inserter/*.cpp"
+    "db_inserter/_internal/*.cpp"
+)
+file(GLOB CONTROLLER_SOURCES "controller/*.cpp")
+
+
+add_executable(
+    workout_tracker_cli          # 可执行文件名
+    main_cli.cpp                 # 入口文件
+    ${COMMON_SOURCES}
+    ${REPROCESSOR_SOURCES}
+    ${DB_INSERTER_SOURCES}
+    ${CONTROLLER_SOURCES}
+)
+
+# 为命令行工具设置头文件路径
+target_include_directories(
+    workout_tracker_cli
+    PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}
+)
+
+# 为命令行工具链接库
+target_link_libraries(
+    workout_tracker_cli
+    PRIVATE 
+    nlohmann_json::nlohmann_json 
+    SQLite::SQLite3 
+)
+
+message(STATUS "Executables will be created at: ${CMAKE_BINARY_DIR}")

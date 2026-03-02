@@ -21,8 +21,11 @@ bool LogParser::parseFile(const std::string& filePath) {
     std::string line;
     DailyData currentDailyData;
     bool newDate = true;
+    int lineCounter = 0; // 新增行号计数器
 
     while (std::getline(file, line)) {
+        lineCounter++; // 每次读取新行时递增
+
         // 移除字符串两端的空白字符
         line.erase(0, line.find_first_not_of(" \t\n\r"));
         line.erase(line.find_last_not_of(" \t\n\r") + 1);
@@ -44,7 +47,7 @@ bool LogParser::parseFile(const std::string& filePath) {
         else {
             if (currentDailyData.date.empty()) {
                 // 如果还没有日期就开始了项目，说明格式错误
-                std::cerr << "Error: Project line found before a date line." << std::endl;
+                std::cerr << "Error: Project line found before a date line at line " << lineCounter << "." << std::endl;
                 return false;
             }
             
@@ -53,6 +56,7 @@ bool LogParser::parseFile(const std::string& filePath) {
             {
                 ProjectData newProject;
                 newProject.projectName = line; // 直接存入原始项目名
+                newProject.line_number = lineCounter; // 赋值行号
                 currentDailyData.projects.push_back(newProject);
                 newDate = false;
             }

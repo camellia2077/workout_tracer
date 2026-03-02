@@ -1,7 +1,7 @@
-#include "DataProcessor.h"
+#include "VolumeCalculator.h"
 #include <numeric> // 用于 std::accumulate
 
-void DataProcessor::calculateVolume(std::vector<DailyData>& allData) {
+void VolumeCalculator::calculateVolume(std::vector<DailyData>& allData) {
     // 遍历每一天的数据
     for (auto& dailyData : allData) {
         // 遍历当天的每一个项目

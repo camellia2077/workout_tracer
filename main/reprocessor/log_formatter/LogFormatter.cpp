@@ -7,8 +7,10 @@ std::string LogFormatter::format(const std::vector<DailyData>& processedData) {
 
     // 遍历每一天的数据
     for (const auto& daily : processedData) {
-        // 1. 直接写入处理后的完整日期 (YYYY-MM-DD)
-        //    这是修正后的逻辑。
+        // 根据您的要求，在每个日期条目前添加两行空行以增强可读性
+        ss << "\n";
+
+        // 1. 写入处理后的完整日期 (YYYY-MM-DD)
         ss << daily.date << "\n";
 
         // 2. 遍历当天的所有项目
@@ -26,6 +28,7 @@ std::string LogFormatter::format(const std::vector<DailyData>& processedData) {
                     ss << "+";
                 }
             }
+            // 原有的换行符
             ss << "\n";
         }
     }
