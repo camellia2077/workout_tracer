@@ -6,8 +6,8 @@
 ## 标准流程（代码改动必须执行）
 1. 编译（先配置再构建）
 ```bash
-python scripts/run.py configure --app workout_calculator --build-dir build_agent
-python scripts/run.py build --app workout_calculator --build-dir build_agent
+python tools/run.py configure --app workout_calculator --build-dir build_agent
+python tools/run.py build --app workout_calculator --build-dir build_agent
 ```
 
 2. 测试（进入 test 流程执行套件）
@@ -23,3 +23,7 @@ python test/run.py --suite workout_calculator --build-dir build_agent --concise
 ## 例外规则
 - 如果修改只涉及文档（如 `docs/**`、`*.md`、`.agent/**`），不需要编译和测试。
 - 如果是文档+代码混合改动，仍按“标准流程（代码改动必须执行）”处理。
+
+## CLI / Python 命令约定
+- 对于 Python 工具命令，优先使用分层 `--help` 逐层查看说明，不要一次性打印根级全部帮助。
+- 推荐顺序：先看主命令 `--help`，再看子命令 `--help`，最后再执行具体命令。
