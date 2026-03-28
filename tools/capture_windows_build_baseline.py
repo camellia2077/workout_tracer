@@ -20,12 +20,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--app",
         default="tracer_core",
-        help="App name passed to scripts/run.py build (default: tracer_core).",
-    )
-    parser.add_argument(
-        "--profile",
-        default="release_safe",
-        help="Build profile passed to scripts/run.py (default: release_safe).",
+        help="App name passed to tools/run.py build (default: tracer_core).",
     )
     parser.add_argument(
         "--build-dir",
@@ -40,22 +35,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--run-build",
         action="store_true",
-        help="Run build via python scripts/run.py before collecting baseline.",
-    )
-    parser.add_argument(
-        "--clean-first",
-        action="store_true",
-        help="Delete build directory before build (effective with --run-build).",
-    )
-    parser.add_argument(
-        "--cmake-arg",
-        action="append",
-        default=[],
-        metavar="ARG",
-        help=(
-            "Extra CMake argument forwarded as --cmake-args=<ARG>. "
-            "Can be repeated."
-        ),
+        help="Run build via python tools/run.py before collecting baseline.",
     )
     return parser.parse_args()
 
@@ -157,7 +137,7 @@ def collect_binary_imports(bin_dir: Path, artifacts: list[dict[str, object]]) ->
 
 def main() -> int:
     args = parse_args()
-    repo_root = Path(__file__).resolve().parents[2]
+    repo_root = Path(__file__).resolve().parent.parent
     app_dir = repo_root / "apps" / args.app
     build_dir = app_dir / args.build_dir
     bin_dir = build_dir / "bin"
@@ -170,24 +150,20 @@ def main() -> int:
     if args.run_build:
         if args.clean_first and build_dir.exists():
             print(f"--- clean build dir: {build_dir}")
-            # Keep cleanup logic in Python while build itself still uses scripts/run.py.
+            # Keep cleanup logic in Python while build itself still uses tools/run.py.
             import shutil
 
             shutil.rmtree(build_dir)
 
         build_cmd = [
             sys.executable,
-            "scripts/run.py",
+            "tools/run.py",
             "build",
             "--app",
             args.app,
-            "--profile",
-            args.profile,
             "--build-dir",
             args.build_dir,
         ]
-        for cmake_arg in args.cmake_arg:
-            build_cmd.append(f"--cmake-args={cmake_arg}")
 
         print("--- run build command:")
         print(" ".join(build_cmd))
@@ -213,7 +189,6 @@ def main() -> int:
     payload = {
         "timestamp_utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
         "app": args.app,
-        "build_profile": args.profile,
         "build_dir": str(build_dir),
         "bin_dir": str(bin_dir),
         "cmake_generator": read_cmake_generator(build_dir),

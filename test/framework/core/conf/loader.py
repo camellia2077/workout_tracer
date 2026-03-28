@@ -3,7 +3,7 @@ import re
 import sys
 from pathlib import Path
 from typing import Any, Dict
-from .definitions import Paths, CLINames, TestParams, Cleanup, RunControl, GlobalConfig, CommandSpec, PipelineConfig
+from .definitions import Paths, CLINames, Cleanup, RunControl, GlobalConfig, CommandSpec
 from .schema_validator import validate_suite_schema
 
 # Python 3.11+ 内置 tomllib
@@ -227,24 +227,6 @@ def _load_cli_names(toml_data) -> CLINames:
     cli_inst.GENERATED_DB_FILE_NAME = cli_names_data.get("generated_db_file_name")
     return cli_inst
 
-def _load_test_params(toml_data) -> TestParams:
-    test_params_data = toml_data.get("test_params", {})
-    params_inst = TestParams()
-    params_inst.TEST_FORMATS = test_params_data.get("test_formats", [])
-    params_inst.DAILY_QUERY_DATES = test_params_data.get("daily_query_dates", [])
-    params_inst.MONTHLY_QUERY_MONTHS = test_params_data.get("monthly_query_months", [])
-    params_inst.WEEKLY_QUERY_WEEKS = test_params_data.get("weekly_query_weeks", [])
-    params_inst.YEARLY_QUERY_YEARS = test_params_data.get("yearly_query_years", [])
-    params_inst.RECENT_QUERY_DAYS = test_params_data.get("recent_query_days", [])
-    
-    params_inst.EXPORT_MODE_IS_BULK = bool(test_params_data.get("export_mode_is_bulk", False))
-    params_inst.SPECIFIC_EXPORT_DATES = test_params_data.get("specific_export_dates", [])
-    params_inst.SPECIFIC_EXPORT_MONTHS = test_params_data.get("specific_export_months", [])
-    params_inst.SPECIFIC_EXPORT_WEEKS = test_params_data.get("specific_export_weeks", [])
-    params_inst.SPECIFIC_EXPORT_YEARS = test_params_data.get("specific_export_years", [])
-    params_inst.RECENT_EXPORT_DAYS = test_params_data.get("recent_export_days", [])
-    return params_inst
-
 def _load_cleanup_params(toml_data) -> Cleanup:
     cleanup_data = toml_data.get("cleanup", {})
     cleanup_inst = Cleanup()
@@ -262,16 +244,6 @@ def _load_run_control(toml_data) -> RunControl:
     run_inst.ENABLE_TEST_EXECUTION = bool(run_control_data.get("enable_test_execution", True))
     run_inst.STOP_ON_FAILURE = bool(run_control_data.get("stop_on_failure", True))
     return run_inst
-
-def _load_pipeline(toml_data) -> PipelineConfig:
-    pipeline_data = toml_data.get("pipeline", {})
-    mode = str(pipeline_data.get("mode", "ingest")).strip().lower()
-    if mode not in {"ingest", "staged", "none"}:
-        raise ValueError(
-            "Config error: [pipeline].mode must be 'ingest', 'staged', or 'none'."
-        )
-
-    return PipelineConfig(MODE=mode)
 
 def _normalize_list(value):
     if value is None:
@@ -302,6 +274,8 @@ def _parse_command_item(item: dict) -> CommandSpec:
         expect_files=[str(p) for p in _normalize_list(item.get("expect_files"))],
         expect_stdout_contains=[str(s) for s in _normalize_list(item.get("expect_stdout_contains"))],
         expect_stderr_contains=[str(s) for s in _normalize_list(item.get("expect_stderr_contains"))],
+        expect_stdout_not_contains=[str(s) for s in _normalize_list(item.get("expect_stdout_not_contains"))],
+        expect_stderr_not_contains=[str(s) for s in _normalize_list(item.get("expect_stderr_not_contains"))],
     )
 
 def _expand_command_groups(toml_data) -> list[CommandSpec]:
@@ -355,45 +329,19 @@ def _expand_command_groups(toml_data) -> list[CommandSpec]:
                 expect_files=[_safe_format(str(p), variables) for p in _normalize_list(group.get("expect_files"))],
                 expect_stdout_contains=[_safe_format(str(s), variables) for s in _normalize_list(group.get("expect_stdout_contains"))],
                 expect_stderr_contains=[_safe_format(str(s), variables) for s in _normalize_list(group.get("expect_stderr_contains"))],
+                expect_stdout_not_contains=[_safe_format(str(s), variables) for s in _normalize_list(group.get("expect_stdout_not_contains"))],
+                expect_stderr_not_contains=[_safe_format(str(s), variables) for s in _normalize_list(group.get("expect_stderr_not_contains"))],
             ))
 
     return expanded
 
-def _load_commands(toml_data, pipeline_cfg: PipelineConfig) -> list[CommandSpec]:
+def _load_commands(toml_data) -> list[CommandSpec]:
     commands: list[CommandSpec] = []
     for item in toml_data.get("commands", []):
         if isinstance(item, dict):
             commands.append(_parse_command_item(item))
 
     commands.extend(_expand_command_groups(toml_data))
-
-    if pipeline_cfg.MODE == "staged":
-        commands.insert(0, CommandSpec(
-            name="Validate Structure",
-            stage="pipeline",
-            args=["validate-structure", "{data_path}"],
-            expect_exit=0
-        ))
-        commands.insert(1, CommandSpec(
-            name="Convert",
-            stage="pipeline",
-            args=["convert", "{data_path}"],
-            expect_exit=0
-        ))
-        commands.insert(2, CommandSpec(
-            name="Import",
-            stage="pipeline",
-            args=["import", "{processed_json_dir}"],
-            expect_exit=0
-        ))
-    elif pipeline_cfg.MODE == "ingest":
-        commands.insert(0, CommandSpec(
-            name="Ingest Full Pipeline",
-            stage="pipeline",
-            args=["ingest", "{data_path}"],
-            expect_exit=0,
-            add_output_dir=False
-        ))
 
     return commands
 
@@ -426,19 +374,14 @@ def load_config(config_path: Path = None, build_dir_name: str = None,
         if bin_dir:
             toml_data["_bin_dir"] = bin_dir
 
-        pipeline_cfg = _load_pipeline(toml_data)
         paths_cfg = _load_paths(toml_data)
-        if pipeline_cfg.MODE == "staged" and not paths_cfg.PROCESSED_JSON_DIR:
-            raise ValueError("Config error: [paths].processed_json_dir is required when pipeline.mode = 'staged'.")
 
         return GlobalConfig(
             paths=paths_cfg,
             cli_names=_load_cli_names(toml_data),
-            test_params=_load_test_params(toml_data),
             cleanup=_load_cleanup_params(toml_data),
             run_control=_load_run_control(toml_data),
-            pipeline=pipeline_cfg,
-            commands=_load_commands(toml_data, pipeline_cfg)
+            commands=_load_commands(toml_data)
         )
         
     except FileNotFoundError:

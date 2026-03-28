@@ -7,7 +7,7 @@ set -eu
 
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 REPO_ROOT="$( cd "${SCRIPT_DIR}/../../../../.." &> /dev/null && pwd )"
-RUNNER="${REPO_ROOT}/scripts/run.py"
+RUNNER="${REPO_ROOT}/tools/run.py"
 
 if [[ ! -f "$RUNNER" ]]; then
   echo "Error: scripts runner not found at ${RUNNER}" >&2

@@ -103,6 +103,8 @@ class CommandSpec:
     expect_files: List[str] = field(default_factory=list)
     expect_stdout_contains: List[str] = field(default_factory=list)
     expect_stderr_contains: List[str] = field(default_factory=list)
+    expect_stdout_not_contains: List[str] = field(default_factory=list)
+    expect_stderr_not_contains: List[str] = field(default_factory=list)
 
 
 @dataclass
@@ -131,22 +133,6 @@ class CLINames:
 
 
 @dataclass
-class TestParams:
-    TEST_FORMATS: List[str] = field(default_factory=list)
-    DAILY_QUERY_DATES: List[str] = field(default_factory=list)
-    MONTHLY_QUERY_MONTHS: List[str] = field(default_factory=list)
-    WEEKLY_QUERY_WEEKS: List[str] = field(default_factory=list)
-    YEARLY_QUERY_YEARS: List[str] = field(default_factory=list)
-    RECENT_QUERY_DAYS: List[int] = field(default_factory=list)
-    EXPORT_MODE_IS_BULK: bool = False
-    SPECIFIC_EXPORT_DATES: List[str] = field(default_factory=list)
-    SPECIFIC_EXPORT_MONTHS: List[str] = field(default_factory=list)
-    SPECIFIC_EXPORT_WEEKS: List[str] = field(default_factory=list)
-    SPECIFIC_EXPORT_YEARS: List[str] = field(default_factory=list)
-    RECENT_EXPORT_DAYS: List[int] = field(default_factory=list)
-
-
-@dataclass
 class Cleanup:
     FILES_TO_COPY: List[str] = field(default_factory=list)
     FOLDERS_TO_COPY: List[str] = field(default_factory=list)
@@ -162,16 +148,9 @@ class RunControl:
 
 
 @dataclass
-class PipelineConfig:
-    MODE: str = "ingest"  # "ingest" or "staged" or "none"
-
-
-@dataclass
 class GlobalConfig:
     paths: Paths
     cli_names: CLINames
-    test_params: TestParams
     cleanup: Cleanup
     run_control: RunControl
-    pipeline: PipelineConfig
     commands: List[CommandSpec] = field(default_factory=list)

@@ -8,7 +8,7 @@ cmake_flags = [
 ]
 
 [build]
-# Toolchain selector used by scripts/run.py configure.
+# Toolchain selector used by tools/run.py configure.
 # Values: "default" | "clang" | "gcc"
 # NOTE:
 # Main executable LTO can fail on some toolchains, so build scripts

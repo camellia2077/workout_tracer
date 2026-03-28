@@ -96,12 +96,11 @@ def _validate_placeholder_usage(
 def _validate_required_sections(
     toml_data: dict[str, Any],
     errors: list[str],
-) -> tuple[dict[str, Any], dict[str, Any], dict[str, Any], dict[str, Any]]:
+) -> tuple[dict[str, Any], dict[str, Any], dict[str, Any]]:
     paths = _require_table(toml_data, "paths", errors)
     cli_names = _require_table(toml_data, "cli_names", errors)
     run_control = _require_table(toml_data, "run_control", errors)
-    pipeline = _require_table(toml_data, "pipeline", errors)
-    return paths, cli_names, run_control, pipeline
+    return paths, cli_names, run_control
 
 
 def _validate_paths(
@@ -160,18 +159,6 @@ def _validate_run_control(run_control: dict[str, Any], errors: list[str]) -> Non
         _require_bool_like(run_control, key, "run_control", errors)
 
 
-def _validate_pipeline(pipeline: dict[str, Any], errors: list[str]) -> None:
-    mode = _require_non_empty_string(pipeline, "mode", "pipeline", errors)
-    if mode is None:
-        return
-    if mode.strip().lower() not in {"ingest", "staged", "none"}:
-        _append_error(
-            errors,
-            "pipeline.mode",
-            "must be one of: ingest, staged, none.",
-        )
-
-
 def _validate_commands(
     toml_data: dict[str, Any],
     errors: list[str],
@@ -215,7 +202,13 @@ def _validate_commands(
             if isinstance(value, str):
                 strings_to_validate.append(value)
         strings_to_validate.extend([str(item) for item in args_list])
-        for key in ("expect_files", "expect_stdout_contains", "expect_stderr_contains"):
+        for key in (
+            "expect_files",
+            "expect_stdout_contains",
+            "expect_stderr_contains",
+            "expect_stdout_not_contains",
+            "expect_stderr_not_contains",
+        ):
             strings_to_validate.extend([str(item) for item in _as_list(command.get(key))])
 
         _validate_placeholder_usage(
@@ -271,7 +264,13 @@ def _validate_commands(
             value = group.get(key)
             if isinstance(value, str):
                 strings_to_validate.append(value)
-        for key in ("expect_files", "expect_stdout_contains", "expect_stderr_contains"):
+        for key in (
+            "expect_files",
+            "expect_stdout_contains",
+            "expect_stderr_contains",
+            "expect_stdout_not_contains",
+            "expect_stderr_not_contains",
+        ):
             strings_to_validate.extend([str(item) for item in _as_list(group.get(key))])
 
         _validate_placeholder_usage(
@@ -313,14 +312,13 @@ def validate_suite_schema(
 ) -> None:
     errors: list[str] = []
 
-    paths, cli_names, run_control, pipeline = _validate_required_sections(
+    paths, cli_names, run_control = _validate_required_sections(
         toml_data, errors
     )
     _validate_no_unresolved_dollar_variables(toml_data, "", errors)
     _validate_paths(paths, config_path, errors)
     _validate_cli_names(cli_names, errors)
     _validate_run_control(run_control, errors)
-    _validate_pipeline(pipeline, errors)
     _validate_commands(toml_data, errors)
 
     if errors:

@@ -159,7 +159,7 @@
   - `apps/cmake/SourceFileCollection.cmake`
   - `apps/cmake/TargetSetup.cmake`
 - 脚本与测试路径已切换到 `apps`：
-  - `scripts/config.toml`
+  - `tools/config.toml`
   - `test/suites/workout_calculator/env.toml`
 
 ---

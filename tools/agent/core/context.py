@@ -11,8 +11,12 @@ class Context:
         self.config = self._load_config()
     
     def _load_config(self) -> AgentConfig:
-        config_path = self.repo_root / "scripts" / "config.toml"
-        if not config_path.exists():
+        config_candidates = [
+            self.repo_root / "tools" / "config.toml",
+            self.repo_root / "scripts" / "config.toml",
+        ]
+        config_path = next((path for path in config_candidates if path.exists()), None)
+        if config_path is None:
             return AgentConfig()
         
         try:

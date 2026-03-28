@@ -73,6 +73,16 @@ class BaseTester:
                 status = "FAIL"
                 messages.append(f"Missing stderr text: {needle}")
 
+        for needle in kwargs.get("expect_stdout_not_contains", []) or []:
+            if needle in stdout_text:
+                status = "FAIL"
+                messages.append(f"Unexpected stdout text: {needle}")
+
+        for needle in kwargs.get("expect_stderr_not_contains", []) or []:
+            if needle in stderr_text:
+                status = "FAIL"
+                messages.append(f"Unexpected stderr text: {needle}")
+
         for path_str in kwargs.get("expect_files", []) or []:
             if not Path(path_str).exists():
                 status = "FAIL"

@@ -37,6 +37,8 @@ class TableTester(BaseTester):
                 expect_files=spec.expect_files,
                 expect_stdout_contains=spec.expect_stdout_contains,
                 expect_stderr_contains=spec.expect_stderr_contains,
+                expect_stdout_not_contains=spec.expect_stdout_not_contains,
+                expect_stderr_not_contains=spec.expect_stderr_not_contains,
             )
             report.results.append(result)
             if self.stop_on_failure and result.status == "FAIL":
@@ -211,6 +213,12 @@ class TestEngine:
                 expect_stderr_contains=[safe_format(str(text))
                                         for text in
                                         command.expect_stderr_contains],
+                expect_stdout_not_contains=[safe_format(str(text))
+                                            for text in
+                                            command.expect_stdout_not_contains],
+                expect_stderr_not_contains=[safe_format(str(text))
+                                            for text in
+                                            command.expect_stderr_not_contains],
             ))
         return expanded
 

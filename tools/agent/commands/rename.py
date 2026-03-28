@@ -181,7 +181,7 @@ class RenameCommand:
         tasks_dir = paths["tasks_dir"]
         if not tasks_dir.exists():
             print(f"--- Tasks directory does not exist: {tasks_dir}")
-            print("--- Run `python scripts/run.py tidy --app <app>` first.")
+            print("--- Run `python tools/run.py tidy --app <app>` first.")
             return 1
 
         check_name = self.ctx.config.rename.check_name
@@ -224,7 +224,7 @@ class RenameCommand:
         candidates = self._load_candidates(paths["candidates_path"])
         if not candidates:
             print("--- No rename candidates found.")
-            print("--- Run `python scripts/run.py rename-plan --app <app>` first.")
+            print("--- Run `python tools/run.py rename-plan --app <app>` first.")
             return 1
 
         selected_candidates = candidates[:limit] if limit > 0 else candidates
@@ -520,7 +520,7 @@ class RenameCommand:
         candidates = self._load_candidates(paths["candidates_path"])
         if not candidates:
             print("--- No rename candidates found for audit.")
-            print("--- Run `python scripts/run.py rename-plan --app <app>` first.")
+            print("--- Run `python tools/run.py rename-plan --app <app>` first.")
             return 1
 
         results = []

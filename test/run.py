@@ -73,10 +73,14 @@ def _load_suite_default_build_dir(suite_root: Path) -> str | None:
 
 
 def _resolve_app_root(repo_root: Path, app_name: str) -> Path:
-    scripts_config_path = repo_root / "scripts" / "config.toml"
-    if scripts_config_path.exists():
+    config_candidates = [
+        repo_root / "tools" / "config.toml",
+        repo_root / "scripts" / "config.toml",
+    ]
+    config_path = next((path for path in config_candidates if path.exists()), None)
+    if config_path is not None:
         try:
-            with scripts_config_path.open("rb") as file:
+            with config_path.open("rb") as file:
                 data = tomllib.load(file)
             apps = data.get("apps", {})
             app_meta = apps.get(app_name, {}) if isinstance(apps, dict) else {}
@@ -86,7 +90,7 @@ def _resolve_app_root(repo_root: Path, app_name: str) -> Path:
                 return configured if configured.is_absolute() else (repo_root / configured)
         except Exception as error:
             print(
-                f"Warning: failed to parse scripts/config.toml for app path: {error}",
+                f"Warning: failed to parse {config_path} for app path: {error}",
                 flush=True,
             )
 
@@ -245,9 +249,9 @@ def main(argv=None):
     )
 
     if args.with_build:
-        scripts_run = repo_root / "scripts" / "run.py"
-        if not scripts_run.exists():
-            print(f"Error: scripts runner not found: {scripts_run}")
+        tools_run = repo_root / "tools" / "run.py"
+        if not tools_run.exists():
+            print(f"Error: tools runner not found: {tools_run}")
             return 1
 
         python_exe = sys.executable
@@ -260,7 +264,7 @@ def main(argv=None):
         if not args.skip_configure:
             configure_cmd = [
                 python_exe,
-                str(scripts_run),
+                str(tools_run),
                 "configure",
                 "--app",
                 app_name,
@@ -275,7 +279,7 @@ def main(argv=None):
         if not args.skip_build:
             build_cmd = [
                 python_exe,
-                str(scripts_run),
+                str(tools_run),
                 "build",
                 "--app",
                 app_name,
