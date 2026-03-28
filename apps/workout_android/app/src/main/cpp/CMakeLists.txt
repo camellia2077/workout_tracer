@@ -9,6 +9,7 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 set(WORKOUT_CORE_SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../../../../../workout_core/src)
+set(WORKOUT_IO_SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../../../../../workout_io/src)
 set(CJSON_DIR ${CMAKE_CURRENT_SOURCE_DIR}/third_party/cjson)
 set(SQLITE_VENDOR_DIR ${CMAKE_CURRENT_SOURCE_DIR}/third_party/sqlite)
 
@@ -77,11 +78,16 @@ file(GLOB_RECURSE WORKOUT_CORE_SOURCES
     "${WORKOUT_CORE_SRC_DIR}/*.cpp"
 )
 
+file(GLOB_RECURSE WORKOUT_IO_SOURCES
+    "${WORKOUT_IO_SRC_DIR}/*.cpp"
+)
+
 add_library(
     workout_android
     SHARED
     jni/workout_android_bridge.cpp
     ${WORKOUT_CORE_SOURCES}
+    ${WORKOUT_IO_SOURCES}
     ${CJSON_DIR}/cJSON.c
 )
 
@@ -89,6 +95,7 @@ target_include_directories(
     workout_android
     PRIVATE
     ${WORKOUT_CORE_SRC_DIR}
+    ${WORKOUT_IO_SRC_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}/third_party
 )
 

@@ -30,11 +30,10 @@ auto workout_core_make_result(workout_core_status_code_t status_code,
     -> workout_core_result_t {
   workout_core_result_t result{};
   result.status_code = status_code;
-  result.message_utf8 = DuplicateCString(message_utf8 == nullptr ? ""
-                                                                 : message_utf8);
-  result.payload_json_utf8 = DuplicateCString(payload_json_utf8 == nullptr
-                                                  ? kEmptyJsonPayload
-                                                  : payload_json_utf8);
+  result.message_utf8 =
+      DuplicateCString(message_utf8 == nullptr ? "" : message_utf8);
+  result.payload_json_utf8 = DuplicateCString(
+      payload_json_utf8 == nullptr ? kEmptyJsonPayload : payload_json_utf8);
   return result;
 }
 

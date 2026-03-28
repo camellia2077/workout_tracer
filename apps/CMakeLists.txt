@@ -37,26 +37,46 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 add_lint_targets("${ALL_SOURCES}")
 
 # --- 4. 生成目标 ---
+message(STATUS "Configuring 'workout_io'...")
+add_library(workout_io STATIC ${WORKOUT_IO_SOURCES})
+target_include_directories(
+    workout_io
+    PUBLIC
+    ${CMAKE_CURRENT_SOURCE_DIR}/workout_core/src
+    ${CMAKE_CURRENT_SOURCE_DIR}/workout_io/src
+)
+target_link_libraries(
+    workout_io
+    PUBLIC
+    cjson
+    SQLite::SQLite3
+)
+
 message(STATUS "Configuring 'workout_core'...")
 add_library(workout_core STATIC ${CORE_SOURCES})
 target_include_directories(
     workout_core
     PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/workout_core/src
-    ${CMAKE_CURRENT_SOURCE_DIR}/workout_windows_cli/src
 )
 
 message(STATUS "Configuring 'workout_tracker_cli'...")
+
+set(WORKOUT_TRACKER_CLI_SOURCES
+    ${CLI_SOURCES}
+    ${CORE_APPLICATION_SOURCES}
+)
 
 # 调用我们在 TargetSetup.cmake 中定义的函数
 configure_workout_target(
     workout_tracker_cli 
     workout_windows_cli/src/main_cli.cpp 
-    "${ALL_SOURCES}"
+    "${WORKOUT_TRACKER_CLI_SOURCES}"
 )
 
 target_link_libraries(
     workout_tracker_cli
     PRIVATE
+    workout_io
     workout_core
 )

@@ -6,6 +6,7 @@
 #include <vector>
 
 #include "application/interfaces/workout_query_models.hpp"
+#include "core/application/use_case_result.hpp"
 #include "domain/models/workout_item.hpp"
 
 class IWorkoutRepository {
@@ -13,19 +14,20 @@ public:
   virtual ~IWorkoutRepository() = default;
 
   [[nodiscard]] virtual auto InsertTrainingData(
-      const std::vector<DailyData>& data) -> bool = 0;
+      const std::vector<DailyData>& data) -> UseCaseResult<void> = 0;
 
   [[nodiscard]] virtual auto QueryPersonalRecords()
-      -> std::vector<WorkoutPersonalRecord> = 0;
+      -> UseCaseResult<std::vector<WorkoutPersonalRecord>> = 0;
 
   [[nodiscard]] virtual auto ListExercises(const std::string& type_filter)
-      -> std::vector<WorkoutExerciseInfo> = 0;
+      -> UseCaseResult<std::vector<WorkoutExerciseInfo>> = 0;
 
-  [[nodiscard]] virtual auto ListCycles() -> std::vector<WorkoutCycleRecord> = 0;
+  [[nodiscard]] virtual auto ListCycles()
+      -> UseCaseResult<std::vector<WorkoutCycleRecord>> = 0;
 
   [[nodiscard]] virtual auto QueryVolumeStats(const std::string& cycle_id,
                                               const std::string& type_filter)
-      -> std::optional<WorkoutVolumeStats> = 0;
+      -> UseCaseResult<std::optional<WorkoutVolumeStats>> = 0;
 };
 
 #endif  // APPLICATION_INTERFACES_I_WORKOUT_REPOSITORY_HPP_

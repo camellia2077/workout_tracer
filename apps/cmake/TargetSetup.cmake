@@ -42,6 +42,7 @@ function(configure_workout_target TARGET_NAME ENTRY_POINT_FILE SOURCE_LIST)
         ${TARGET_NAME}
         PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/workout_core/src
+        ${CMAKE_CURRENT_SOURCE_DIR}/workout_io/src
         ${CMAKE_CURRENT_SOURCE_DIR}/workout_windows_cli/src
     )
 
