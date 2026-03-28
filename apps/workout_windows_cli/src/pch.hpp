@@ -36,8 +36,6 @@
 //  3. 项目内部稳定且常用的核心头文件
 //  建议仅包含极少修改的核心接口。
 // ===================================================================
-#include "cli/command_line_parser.hpp" // 使用次数: 1
-
 #include "application/action_handler.hpp"                // 使用次数: 5
 #include "application/database_handler.hpp"              // 使用次数: 2
 #include "application/file_processor_handler.hpp"        // 使用次数: 2

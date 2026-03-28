@@ -9,15 +9,35 @@ namespace cli::commands {
 
 class QueryCyclesCommand : public framework::Command {
 public:
-  auto GetName() const -> std::string override { return "cycles"; }
+  auto GetGroupName() const -> std::string override { return "query"; }
 
-  auto GetCategory() const -> std::string override { return "Analysis & Query"; }
-
-  auto GetDescription() const -> std::string override {
-    return "Query all stored training cycles.";
+  auto GetGroupDescription() const -> std::string override {
+    return "Query analytics and summaries from stored workout data.";
   }
 
-  auto Parse([[maybe_unused]] const std::vector<std::string>& args, AppConfig& config) -> bool override {
+  auto GetCommandName() const -> std::string override { return "cycles"; }
+
+  auto GetCommandDescription() const -> std::string override {
+    return "List all stored training cycles.";
+  }
+
+  auto GetUsage(std::string_view program_name) const -> std::string override {
+    return std::string(program_name) + " query cycles";
+  }
+
+  auto GetExamples(std::string_view program_name) const
+      -> std::vector<std::string> override {
+    return {std::string(program_name) + " query cycles"};
+  }
+
+  auto Parse([[maybe_unused]] const std::vector<std::string>& args,
+             AppConfig& config) const -> bool override {
+    if (args.size() > 1) {
+      std::cerr
+          << "Error: 'cycles' command does not take any additional arguments."
+          << std::endl;
+      return false;
+    }
     config.action_ = ActionType::QueryCycles;
     return true;
   }

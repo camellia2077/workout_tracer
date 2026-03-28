@@ -39,13 +39,13 @@ auto main(int argc, char** argv) -> int {
   app.RegisterCommand(std::make_unique<cli::commands::QueryPRCommand>());
   app.RegisterCommand(std::make_unique<cli::commands::VolumeCommand>());
 
-  auto config_opt = app.Parse(argc, argv);
-  if (!config_opt.has_value()) {
-    return 1;
+  auto parse_result = app.Parse(argc, argv);
+  if (!parse_result.config_.has_value()) {
+    return parse_result.exit_code_;
   }
 
   auto core_request_envelope =
-      cli::framework::BuildCoreRequestFromConfig(config_opt.value());
+      cli::framework::BuildCoreRequestFromConfig(parse_result.config_.value());
   workout_core_request_t core_request = core_request_envelope.ToCRequest();
   workout_core_result_t core_result =
       workout_core_execute_request(&core_request);

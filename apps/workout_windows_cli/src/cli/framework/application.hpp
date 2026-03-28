@@ -6,10 +6,16 @@
 #include <map>
 #include <memory>
 #include <optional>
+#include <string_view>
 #include <vector>
 
 namespace cli {
 namespace framework {
+
+struct ParseResult {
+  std::optional<AppConfig> config_;
+  int exit_code_ = 1;
+};
 
 class Application {
 public:
@@ -17,16 +23,33 @@ public:
   
   auto RegisterCommand(std::unique_ptr<Command> command) -> void;
   
-  auto Parse(int argc, char** argv) -> std::optional<AppConfig>;
+  auto Parse(int argc, char** argv) const -> ParseResult;
 
 private:
-  std::string app_name_;
-  std::map<std::string, std::unique_ptr<Command>> commands_;
+  struct CommandGroup {
+    std::string description_;
+    std::map<std::string, std::unique_ptr<Command>> commands_;
+  };
 
-  auto PrintUsage() const -> void;
+  std::string app_name_;
+  std::map<std::string, CommandGroup> command_groups_;
+
+  auto PrintRootHelp(std::string_view program_name) const -> void;
+  auto PrintGroupHelp(std::string_view program_name,
+                      std::string_view group_name) const -> void;
+  auto PrintCommandHelp(std::string_view program_name,
+                        const Command& command) const -> void;
+  [[nodiscard]] auto FindCommand(std::string_view group_name,
+                                 std::string_view command_name) const
+      -> const Command*;
+  [[nodiscard]] auto GetProgramName(const char* executable_path) const
+      -> std::string;
+  static auto IsHelpToken(std::string_view token) -> bool;
   static auto PrintVersion() -> void;
   static auto ResolveConfigPaths(AppConfig& config, const char* executable_path) -> void;
-  static constexpr int kPaddingLength = 20;
+  static constexpr int kGroupPaddingLength = 10;
+  static constexpr int kCommandPaddingLength = 12;
+  static constexpr int kOptionPaddingLength = 18;
 };
 
 } // namespace framework

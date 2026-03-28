@@ -10,15 +10,29 @@ namespace commands {
 
 class ExportCommand : public framework::Command {
 public:
-  auto GetName() const -> std::string override { return "export"; }
+  auto GetGroupName() const -> std::string override { return "report"; }
 
-  auto GetCategory() const -> std::string override { return "Storage & Output"; }
-
-  auto GetDescription() const -> std::string override {
-    return "Export all data from the database to Markdown files.";
+  auto GetGroupDescription() const -> std::string override {
+    return "Generate reports from stored workout data.";
   }
 
-  auto Parse([[maybe_unused]] const std::vector<std::string>& args, AppConfig& config) -> bool override {
+  auto GetCommandName() const -> std::string override { return "export"; }
+
+  auto GetCommandDescription() const -> std::string override {
+    return "Export Markdown reports from the database.";
+  }
+
+  auto GetUsage(std::string_view program_name) const -> std::string override {
+    return std::string(program_name) + " report export";
+  }
+
+  auto GetExamples(std::string_view program_name) const
+      -> std::vector<std::string> override {
+    return {std::string(program_name) + " report export"};
+  }
+
+  auto Parse([[maybe_unused]] const std::vector<std::string>& args,
+             AppConfig& config) const -> bool override {
     if (args.size() > 1) {
       std::cerr
           << "Error: 'export' command does not take any additional arguments."

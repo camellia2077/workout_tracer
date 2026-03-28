@@ -4,22 +4,141 @@
 enable_test_execution = 1
 stop_on_failure = 1
 
-[pipeline]
-mode = "none"
-
 [paths]
 test_data_path = "../../data/records"
 
 [[commands]]
+name = "Root Help"
+stage = "help"
+args = ["--help"]
+expect_exit = 0
+expect_stderr_contains = [
+  "Usage:",
+  "Available command groups:",
+  "data",
+  "query",
+  "report",
+  "Use 'workout_tracker_cli.exe <group> --help' to list commands in a group."
+]
+expect_stderr_not_contains = [
+  "validate <path>",
+  "volume --type <type> --cycle <cycle>"
+]
+
+[[commands]]
+name = "Data Help"
+stage = "help"
+args = ["data", "--help"]
+expect_exit = 0
+expect_stderr_contains = [
+  "Usage: workout_tracker_cli.exe data <command> [options]",
+  "Commands in 'data':",
+  "validate",
+  "convert",
+  "ingest",
+  "insert"
+]
+
+[[commands]]
+name = "Query Help"
+stage = "help"
+args = ["query", "--help"]
+expect_exit = 0
+expect_stderr_contains = [
+  "Usage: workout_tracker_cli.exe query <command> [options]",
+  "Commands in 'query':",
+  "pr",
+  "list",
+  "cycles",
+  "volume"
+]
+
+[[commands]]
+name = "Report Help"
+stage = "help"
+args = ["report", "--help"]
+expect_exit = 0
+expect_stderr_contains = [
+  "Usage: workout_tracker_cli.exe report <command> [options]",
+  "Commands in 'report':",
+  "export"
+]
+
+[[commands]]
+name = "Volume Help"
+stage = "help"
+args = ["query", "volume", "--help"]
+expect_exit = 0
+expect_stderr_contains = [
+  "Usage: workout_tracker_cli.exe query volume --type <type> --cycle <cycle>",
+  "Options:",
+  "--type <type>",
+  "--cycle <cycle>",
+  "Examples:",
+  "query volume --type push --cycle 2025-07-05"
+]
+
+[[commands]]
+name = "Unknown Group"
+stage = "errors"
+args = ["unknown"]
+expect_exit = 1
+expect_stderr_contains = [
+  "Error: Unknown command group 'unknown'.",
+  "Use 'workout_tracker_cli.exe --help' for details."
+]
+
+[[commands]]
+name = "Unknown Query Subcommand"
+stage = "errors"
+args = ["query", "unknown"]
+expect_exit = 1
+expect_stderr_contains = [
+  "Error: Unknown subcommand 'unknown' for group 'query'.",
+  "Use 'workout_tracker_cli.exe query --help' for details."
+]
+
+[[commands]]
+name = "Validate Missing Path"
+stage = "errors"
+args = ["data", "validate"]
+expect_exit = 1
+expect_stderr_contains = [
+  "Error: 'validate' command requires a <path> argument.",
+  "Usage: workout_tracker_cli.exe data validate <path>",
+  "Use 'workout_tracker_cli.exe data validate --help' for details."
+]
+
+[[commands]]
+name = "Volume Missing Type"
+stage = "errors"
+args = ["query", "volume", "--cycle", "2025-07-05"]
+expect_exit = 1
+expect_stderr_contains = [
+  "Error: Both --type and --cycle are required for volume query.",
+  "Usage: workout_tracker_cli.exe query volume --type <type> --cycle <cycle>"
+]
+
+[[commands]]
+name = "Volume Missing Cycle"
+stage = "errors"
+args = ["query", "volume", "--type", "push"]
+expect_exit = 1
+expect_stderr_contains = [
+  "Error: Both --type and --cycle are required for volume query.",
+  "Usage: workout_tracker_cli.exe query volume --type <type> --cycle <cycle>"
+]
+
+[[commands]]
 name = "Validate Records"
 stage = "pipeline"
-args = ["validate", "{data_path}"]
+args = ["data", "validate", "{data_path}"]
 expect_exit = 0
 
 [[commands]]
 name = "Convert Records"
 stage = "pipeline"
-args = ["convert", "{data_path}"]
+args = ["data", "convert", "{data_path}"]
 expect_exit = 0
 expect_files = [
   "{processed_json_dir}/2025_7.json",
@@ -29,48 +148,48 @@ expect_files = [
 [[commands]]
 name = "Insert Converted JSON"
 stage = "pipeline"
-args = ["insert", "{processed_json_dir}"]
+args = ["data", "insert", "{processed_json_dir}"]
 expect_exit = 0
 expect_files = ["{db_path}"]
 
 [[commands]]
 name = "Export Reports"
 stage = "pipeline"
-args = ["export"]
+args = ["report", "export"]
 expect_exit = 0
 expect_files = ["{exe_dir}/output/reports/Summary.md"]
 
 [[commands]]
 name = "Query Cycles"
 stage = "query"
-args = ["cycles"]
+args = ["query", "cycles"]
 expect_exit = 0
 expect_stdout_contains = ["Training Cycles"]
 
 [[commands]]
 name = "List Exercises"
 stage = "query"
-args = ["list"]
+args = ["query", "list"]
 expect_exit = 0
 expect_stdout_contains = ["Exercises"]
 
 [[commands]]
 name = "List Push Exercises"
 stage = "query"
-args = ["list", "--type", "push"]
+args = ["query", "list", "--type", "push"]
 expect_exit = 0
 expect_stdout_contains = ["[push]"]
 
 [[commands]]
 name = "Query Personal Records"
 stage = "query"
-args = ["pr"]
+args = ["query", "pr"]
 expect_exit = 0
 expect_stdout_contains = ["Personal Records"]
 
 [[commands]]
 name = "Query Push Volume"
 stage = "query"
-args = ["volume", "--type", "push", "--cycle", "2025-07-05"]
+args = ["query", "volume", "--type", "push", "--cycle", "2025-07-05"]
 expect_exit = 0
 expect_stdout_contains = ["Advanced Kinematics Analysis"]

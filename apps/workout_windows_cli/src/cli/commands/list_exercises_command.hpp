@@ -10,21 +10,52 @@ namespace commands {
 
 class ListExercisesCommand : public framework::Command {
 public:
-  auto GetName() const -> std::string override { return "list"; }
+  auto GetGroupName() const -> std::string override { return "query"; }
 
-  auto GetCategory() const -> std::string override { return "Analysis & Query"; }
-
-  auto GetDescription() const -> std::string override {
-    return "List all exercises, optionally filtered by type.";
+  auto GetGroupDescription() const -> std::string override {
+    return "Query analytics and summaries from stored workout data.";
   }
 
-  auto Parse(const std::vector<std::string>& args, AppConfig& config) -> bool override {
+  auto GetCommandName() const -> std::string override { return "list"; }
+
+  auto GetCommandDescription() const -> std::string override {
+    return "List exercises, optionally filtered by workout type.";
+  }
+
+  auto GetUsage(std::string_view program_name) const -> std::string override {
+    return std::string(program_name) + " query list [--type <type>]";
+  }
+
+  auto GetExamples(std::string_view program_name) const
+      -> std::vector<std::string> override {
+    return {
+        std::string(program_name) + " query list",
+        std::string(program_name) + " query list --type push",
+    };
+  }
+
+  auto GetOptions() const -> HelpEntries override {
+    return {
+        {"--type <type>", "Filter exercises by workout type."},
+        {"-t <type>", "Alias for --type."},
+    };
+  }
+
+  auto Parse(const std::vector<std::string>& args,
+             AppConfig& config) const -> bool override {
     config.action_ = ActionType::ListExercises;
     for (size_t i = 1; i < args.size(); ++i) {
-      if ((args[i] == "--type" || args[i] == "-t") && i + 1 < args.size()) {
-        config.type_filter_ = args[i + 1];
-        i++;
+      if (args[i] == "--type" || args[i] == "-t") {
+        if (i + 1 >= args.size()) {
+          std::cerr << "Error: '--type' requires a value." << std::endl;
+          return false;
+        }
+        config.type_filter_ = args[++i];
+        continue;
       }
+      std::cerr << "Error: Unknown argument '" << args[i]
+                << "' for 'list' command." << std::endl;
+      return false;
     }
     return true;
   }
