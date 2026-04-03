@@ -6,12 +6,13 @@
 #include <optional>
 #include <string>
 
-#include "common/c_json_helper.hpp"
+#include "application/interfaces/mapping_config.hpp"
 
 class IMappingProvider {
 public:
   virtual ~IMappingProvider() = default;
-  [[nodiscard]] virtual auto GetMappingData(const std::string& source) -> std::optional<CJsonPtr> = 0;
+  [[nodiscard]] virtual auto GetMappingData(const std::string& source)
+      -> std::optional<MappingConfig> = 0;
 };
 
 #endif // APPLICATION_INTERFACES_I_MAPPING_PROVIDER_HPP_

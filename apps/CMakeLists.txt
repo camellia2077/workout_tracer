@@ -8,9 +8,9 @@ set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # --- 1. 查找依赖 ---
-# [MODIFIED] 移除 nlohmann_json，改为查找 cJSON
 find_package(cJSON REQUIRED)
 find_package(SQLite3 REQUIRED)
+find_package(tomlplusplus CONFIG REQUIRED)
 
 # --- 2. 引入自定义 CMake 模块 (核心步骤) ---
 # 将 cmake 目录加入模块搜索路径，方便直接 include
@@ -50,6 +50,7 @@ target_link_libraries(
     PUBLIC
     cjson
     SQLite::SQLite3
+    tomlplusplus::tomlplusplus
 )
 
 message(STATUS "Configuring 'workout_core'...")

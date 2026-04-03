@@ -1,0 +1,31 @@
+[bp]
+full_name = "Bench Press"
+type = "push"
+
+[bbp]
+full_name = "Bar Bell Press"
+type = "push"
+
+[pu]
+full_name = "Pull Up"
+type = "pull"
+
+[sq]
+full_name = "Squat"
+type = "squat"
+
+[dl]
+full_name = "Deadlift"
+type = "pull"
+
+[d]
+full_name = "Dips"
+type = "push"
+
+[fs]
+full_name = "Front Squat"
+type = "squat"
+
+[br]
+full_name = "Barbell Row"
+type = "pull"

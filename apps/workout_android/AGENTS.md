@@ -9,10 +9,19 @@ This file applies to `apps/workout_android` and all its subdirectories.
 - Do not run Windows CLI related verification (for example `workout_tracker_cli` or other `windows_cli` checks), unless explicitly requested.
 
 ## Required Checks After Android Changes
-- Default: `./gradlew :app:assembleDebug`
-- Kotlin/Compose-only changes: `./gradlew :app:compileDebugKotlin`
-- Resource-only changes: `./gradlew :app:processDebugResources`
-- JNI/CMake changes under Android app: `./gradlew :app:externalNativeBuildDebug`
+- Prefer root-level Python entrypoints:
+  - Default: `python tools/run.py android assemble-debug`
+  - Release APK: `python tools/run.py android assemble-release`
+  - JNI/CMake changes under Android app: `python tools/run.py android native-debug`
+  - Release JNI/CMake changes: `python tools/run.py android native-release`
+  - Android unit tests when explicitly needed: `python tools/run.py android test-debug`
+- Direct Gradle equivalents:
+  - Default: `apps/workout_android/gradlew.bat :app:assembleDebug`
+  - Release APK: `apps/workout_android/gradlew.bat :app:assembleRelease`
+  - Kotlin/Compose-only changes: `apps/workout_android/gradlew.bat :app:compileDebugKotlin`
+  - Resource-only changes: `apps/workout_android/gradlew.bat :app:processDebugResources`
+  - JNI/CMake changes under Android app: `apps/workout_android/gradlew.bat :app:externalNativeBuildDebug`
+  - Release JNI/CMake changes: `apps/workout_android/gradlew.bat :app:externalNativeBuildRelease`
 
 ## Network / Proxy (Windows PowerShell)
 - If build fails with TLS/SSL handshake or cannot resolve Google Maven, configure proxy before Android builds.
@@ -29,7 +38,7 @@ This file applies to `apps/workout_android` and all its subdirectories.
 - Validate connectivity:
   - `curl -x http://127.0.0.1:9910 -I https://dl.google.com/dl/android/maven2/`
 - Restart daemon before retry:
-  - `./gradlew --stop`
+  - `apps/workout_android/gradlew.bat --stop`
 
 ## Reference Docs
 - UI preference persistence guide:

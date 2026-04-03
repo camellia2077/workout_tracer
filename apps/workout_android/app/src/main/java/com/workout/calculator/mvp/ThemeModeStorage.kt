@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
+import com.workout.calculator.core.DisplayUnit
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 
@@ -14,6 +15,8 @@ interface UiPreferenceStorage {
     suspend fun saveThemeMode(mode: ThemeMode)
     suspend fun loadAccentColor(): AccentColor
     suspend fun saveAccentColor(color: AccentColor)
+    suspend fun loadDisplayUnit(): DisplayUnit
+    suspend fun saveDisplayUnit(displayUnit: DisplayUnit)
 }
 
 class DataStoreUiPreferenceStorage(
@@ -50,6 +53,21 @@ class DataStoreUiPreferenceStorage(
         }
     }
 
+    override suspend fun loadDisplayUnit(): DisplayUnit {
+        return context.themeDataStore.data
+            .map { preferences ->
+                val savedName = preferences[KEY_DISPLAY_UNIT]
+                savedName?.toDisplayUnitOrNull() ?: DisplayUnit.Original
+            }
+            .first()
+    }
+
+    override suspend fun saveDisplayUnit(displayUnit: DisplayUnit) {
+        context.themeDataStore.edit { preferences ->
+            preferences[KEY_DISPLAY_UNIT] = displayUnit.name
+        }
+    }
+
     private fun String.toThemeModeOrNull(): ThemeMode? {
         return ThemeMode.entries.firstOrNull { it.name == this }
     }
@@ -58,8 +76,13 @@ class DataStoreUiPreferenceStorage(
         return AccentColor.entries.firstOrNull { it.name == this }
     }
 
+    private fun String.toDisplayUnitOrNull(): DisplayUnit? {
+        return DisplayUnit.entries.firstOrNull { it.name == this }
+    }
+
     private companion object {
         val KEY_THEME_MODE = stringPreferencesKey("theme_mode")
         val KEY_ACCENT_COLOR = stringPreferencesKey("accent_color")
+        val KEY_DISPLAY_UNIT = stringPreferencesKey("display_unit")
     }
 }

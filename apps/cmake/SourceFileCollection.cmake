@@ -13,6 +13,12 @@ set(WORKOUT_IO_COMMON_SOURCES
     workout_io/src/common/file_reader.cpp
 )
 
+# --- Workout IO: Config ---
+set(WORKOUT_IO_CONFIG_SOURCES
+    workout_io/src/infrastructure/config/file_mapping_provider.cpp
+    workout_io/src/infrastructure/config/mapping_toml_reader.cpp
+)
+
 # --- Workout IO: Validation ---
 set(WORKOUT_IO_VALIDATION_SOURCES
     workout_io/src/infrastructure/validation/validator.cpp
@@ -51,6 +57,7 @@ set(WORKOUT_IO_REPORTING_SOURCES
 # --- Workout IO 汇总 ---
 set(WORKOUT_IO_SOURCES
     ${WORKOUT_IO_COMMON_SOURCES}
+    ${WORKOUT_IO_CONFIG_SOURCES}
     ${WORKOUT_IO_VALIDATION_SOURCES}
     ${WORKOUT_IO_CONVERTER_SOURCES}
     ${WORKOUT_IO_SERIALIZER_SOURCES}

@@ -1,6 +1,8 @@
 package com.workout.calculator
 
 import android.os.Bundle
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.isSystemInDarkTheme
@@ -66,6 +68,27 @@ class MainActivity : ComponentActivity() {
             MaterialTheme(
                 colorScheme = colorScheme
             ) {
+                val folderPickerLauncher = rememberLauncherForActivityResult(
+                    contract = ActivityResultContracts.OpenDocumentTree(),
+                ) { uri ->
+                    if (uri != null) {
+                        presenter.onImportFolderSelected(uri.toString())
+                    }
+                }
+                val archiveImportLauncher = rememberLauncherForActivityResult(
+                    contract = ActivityResultContracts.OpenDocument(),
+                ) { uri ->
+                    if (uri != null) {
+                        presenter.onImportArchiveSelected(uri.toString())
+                    }
+                }
+                val archiveExportLauncher = rememberLauncherForActivityResult(
+                    contract = ActivityResultContracts.CreateDocument("application/zip"),
+                ) { uri ->
+                    if (uri != null) {
+                        presenter.onExportArchiveSelected(uri.toString())
+                    }
+                }
                 Surface {
                     WorkoutScreen(
                         state = state,
@@ -74,10 +97,20 @@ class MainActivity : ComponentActivity() {
                         onTabSelected = presenter::onTabSelected,
                         onThemeModeSelected = presenter::onThemeModeSelected,
                         onAccentColorSelected = presenter::onAccentColorSelected,
-                        onIngestClick = presenter::onIngestTestDataClick,
+                        onDisplayUnitSelected = presenter::onDisplayUnitSelected,
+                        onImportClick = { folderPickerLauncher.launch(null) },
+                        onImportArchiveClick = {
+                            archiveImportLauncher.launch(arrayOf("application/zip"))
+                        },
+                        onExportArchiveClick = {
+                            archiveExportLauncher.launch("workout_backup.zip")
+                        },
+                        onClearDatabaseClick = presenter::onClearDatabaseClick,
+                        onClearTxtFilesClick = presenter::onClearTxtFilesClick,
                         onQueryClick = presenter::onQueryClick,
-                        onExerciseCardClick = presenter::onExerciseCardClick,
                         onPrCardClick = presenter::onPrCardClick,
+                        onMonthSelected = presenter::onMonthSelected,
+                        onTypeSelected = presenter::onTypeSelected,
                     )
                 }
             }

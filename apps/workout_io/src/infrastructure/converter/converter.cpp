@@ -10,15 +10,15 @@ Converter::Converter(ILogParser& parser, IMappingProvider& mapping_provider)
     : parser_(parser), mapping_provider_(mapping_provider) {}
 
 auto Converter::Configure(const std::string& mapping_file_path) -> bool {
-  auto json_data_opt = mapping_provider_.GetMappingData(mapping_file_path);
-  if (!json_data_opt.has_value()) {
+  auto mapping_data_opt = mapping_provider_.GetMappingData(mapping_file_path);
+  if (!mapping_data_opt.has_value()) {
     std::cerr << "Error: [Converter] Failed to read or parse mapping file: "
               << mapping_file_path << std::endl;
     return false;
   }
 
-  if (!mapper_.LoadMappings(json_data_opt.value().get())) {
-    std::cerr << "Error: [Converter] Failed to load mappings from JSON data."
+  if (!mapper_.LoadMappings(mapping_data_opt.value())) {
+    std::cerr << "Error: [Converter] Failed to load mapping items."
               << std::endl;
     return false;
   }
@@ -31,7 +31,7 @@ auto Converter::Configure(const std::string& mapping_file_path) -> bool {
 auto Converter::MapProjectNames(std::vector<DailyData>& data) -> void {
   for (auto& daily_data : data) {
     for (auto& project : daily_data.projects_) {
-      ProjectMapping mapping = mapper_.GetMapping(project.project_name_);
+      MappingItem mapping = mapper_.GetMapping(project.project_name_);
       project.project_name_ = mapping.full_name;
       project.type_ = mapping.type;
     }

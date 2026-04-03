@@ -15,6 +15,7 @@
 ## 当前已使用的键
 - `theme_mode`：保存主题模式（`Light` / `Dark` / `System`）。
 - `accent_color`：保存主题主色（`Red` / `Orange` / `Yellow` / `Green` / `Cyan` / `Blue` / `Purple`）。
+- `display_unit`：保存重量显示偏好（`Original` / `Kg` / `Lb`）。
 
 ## 代码位置
 - `apps/workout_android/app/src/main/java/com/workout/calculator/mvp/ThemeModeStorage.kt`

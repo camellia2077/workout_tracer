@@ -246,7 +246,7 @@ auto Application::ResolveConfigPaths(AppConfig& config,
     fs::path exe_path = fs::absolute(fs::path(executable_path));
     fs::path exe_dir = exe_path.parent_path();
     fs::path config_dir = exe_dir / "config";
-    fs::path mapping_file = config_dir / "mapping.json";
+    fs::path mapping_file = config_dir / "mapping.toml";
 
     config.base_path_ = exe_dir.string();
     config.mapping_path_ = mapping_file.string();

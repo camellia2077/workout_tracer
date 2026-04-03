@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.22.1)
 project(workout_android_native LANGUAGES C CXX)
 
 include(FetchContent)
+set(FETCHCONTENT_BASE_DIR "${CMAKE_CURRENT_BINARY_DIR}/fc")
 
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_STANDARD_REQUIRED ON)
@@ -12,6 +13,35 @@ set(WORKOUT_CORE_SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../../../../../workout_core
 set(WORKOUT_IO_SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../../../../../workout_io/src)
 set(CJSON_DIR ${CMAKE_CURRENT_SOURCE_DIR}/third_party/cjson)
 set(SQLITE_VENDOR_DIR ${CMAKE_CURRENT_SOURCE_DIR}/third_party/sqlite)
+
+FetchContent_Declare(
+    mz
+    GIT_REPOSITORY https://github.com/richgel999/miniz.git
+    GIT_TAG 3.1.1
+)
+FetchContent_MakeAvailable(mz)
+
+FetchContent_Declare(
+    tp
+    GIT_REPOSITORY https://github.com/marzer/tomlplusplus.git
+    GIT_TAG v3.4.0
+)
+FetchContent_MakeAvailable(tp)
+
+set(WORKOUT_MINIZ_GENERATED_DIR "${CMAKE_CURRENT_BINARY_DIR}/generated/miniz")
+file(MAKE_DIRECTORY "${WORKOUT_MINIZ_GENERATED_DIR}")
+file(WRITE "${WORKOUT_MINIZ_GENERATED_DIR}/miniz_export.h" "#ifndef MINIZ_EXPORT_H\n#define MINIZ_EXPORT_H\n#define MINIZ_EXPORT\n#endif\n")
+
+add_library(workout_miniz STATIC
+    "${mz_SOURCE_DIR}/miniz.c"
+    "${mz_SOURCE_DIR}/miniz_tdef.c"
+    "${mz_SOURCE_DIR}/miniz_tinfl.c"
+    "${mz_SOURCE_DIR}/miniz_zip.c"
+)
+target_include_directories(workout_miniz PUBLIC
+    "${mz_SOURCE_DIR}"
+    "${WORKOUT_MINIZ_GENERATED_DIR}"
+)
 
 function(_ensure_sqlite3_target)
     if(EXISTS "${SQLITE_VENDOR_DIR}/sqlite3.c" AND EXISTS "${SQLITE_VENDOR_DIR}/sqlite3.h")
@@ -97,6 +127,9 @@ target_include_directories(
     ${WORKOUT_CORE_SRC_DIR}
     ${WORKOUT_IO_SRC_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}/third_party
+    ${tp_SOURCE_DIR}/include
+    ${mz_SOURCE_DIR}
+    ${WORKOUT_MINIZ_GENERATED_DIR}
 )
 
 find_library(log-lib log)
@@ -109,4 +142,5 @@ target_link_libraries(
     PRIVATE
     ${log-lib}
     SQLite3
+    workout_miniz
 )

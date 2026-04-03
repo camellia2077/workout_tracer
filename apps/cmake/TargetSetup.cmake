@@ -61,9 +61,8 @@ function(configure_workout_target TARGET_NAME ENTRY_POINT_FILE SOURCE_LIST)
         SQLite::SQLite3
     )
 
-    # --- 复制配置文件逻辑 (已修改) ---
-    # [MODIFIED] 源路径改为根目录下的 config/mapping.json，不再从 src/config 查找
-    set(CONFIG_FILE_SOURCE ${CMAKE_CURRENT_SOURCE_DIR}/config/mapping.json)
+    # --- 复制配置文件逻辑 ---
+    set(CONFIG_FILE_SOURCE ${CMAKE_CURRENT_SOURCE_DIR}/config/mapping.toml)
     
     add_custom_command(
         TARGET ${TARGET_NAME}
@@ -71,7 +70,7 @@ function(configure_workout_target TARGET_NAME ENTRY_POINT_FILE SOURCE_LIST)
         COMMAND ${CMAKE_COMMAND} -E make_directory "$<TARGET_FILE_DIR:${TARGET_NAME}>/config"
         COMMAND ${CMAKE_COMMAND} -E copy
                 "${CONFIG_FILE_SOURCE}"
-                "$<TARGET_FILE_DIR:${TARGET_NAME}>/config/mapping.json"
+                "$<TARGET_FILE_DIR:${TARGET_NAME}>/config/mapping.toml"
         COMMENT "Copying config for ${TARGET_NAME} from root directory"
     )
 endfunction()
