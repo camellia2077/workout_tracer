@@ -42,8 +42,8 @@ add_library(workout_io STATIC ${WORKOUT_IO_SOURCES})
 target_include_directories(
     workout_io
     PUBLIC
-    ${CMAKE_CURRENT_SOURCE_DIR}/workout_core/src
-    ${CMAKE_CURRENT_SOURCE_DIR}/workout_io/src
+    ${CMAKE_CURRENT_SOURCE_DIR}/../libs/workout_core/src
+    ${CMAKE_CURRENT_SOURCE_DIR}/../libs/workout_io/src
 )
 target_link_libraries(
     workout_io
@@ -58,7 +58,7 @@ add_library(workout_core STATIC ${CORE_SOURCES})
 target_include_directories(
     workout_core
     PUBLIC
-    ${CMAKE_CURRENT_SOURCE_DIR}/workout_core/src
+    ${CMAKE_CURRENT_SOURCE_DIR}/../libs/workout_core/src
 )
 
 message(STATUS "Configuring 'workout_tracker_cli'...")

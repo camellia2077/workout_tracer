@@ -15,8 +15,8 @@
 
 本次规则适用于：
 
-* `apps/workout_core`
-* `apps/workout_io`
+* `libs/workout_core`
+* `libs/workout_io`
 * `apps/workout_windows_cli`
 
 本次不改 `Android` 端，但核心侧已经保证 `display_unit` 缺省时按 `original` 处理，所以现有 Android 请求不会因为这次重构而失效。

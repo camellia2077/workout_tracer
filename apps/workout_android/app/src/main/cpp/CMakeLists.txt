@@ -9,8 +9,8 @@ set(CMAKE_C_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-set(WORKOUT_CORE_SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../../../../../workout_core/src)
-set(WORKOUT_IO_SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../../../../../workout_io/src)
+set(WORKOUT_CORE_SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../../../../../../libs/workout_core/src)
+set(WORKOUT_IO_SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../../../../../../libs/workout_io/src)
 set(CJSON_DIR ${CMAKE_CURRENT_SOURCE_DIR}/third_party/cjson)
 set(SQLITE_VENDOR_DIR ${CMAKE_CURRENT_SOURCE_DIR}/third_party/sqlite)
 
