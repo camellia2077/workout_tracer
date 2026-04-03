@@ -8,6 +8,7 @@ SCRIPT_DIR = Path(__file__).resolve().parent
 sys.path.append(str(SCRIPT_DIR))
 
 try:
+    from agent.commands.android import AndroidCommand
     from agent.core.context import Context
     from agent.commands.build import BuildCommand
     from agent.commands.format import FormatCommand
@@ -28,6 +29,31 @@ def main():
 
     parser = argparse.ArgumentParser(description="Unified Agent Toolchain")
     subparsers = parser.add_subparsers(dest="command", required=True)
+
+    android_parser = subparsers.add_parser(
+        "android",
+        help="Android Gradle commands from the repo root.",
+    )
+    android_subparsers = android_parser.add_subparsers(
+        dest="android_command",
+        required=True,
+    )
+    for android_cmd_name, android_help in [
+        ("assemble-debug", "Build the Android debug APK."),
+        ("assemble-release", "Build the Android release APK."),
+        ("native-debug", "Build Android native/JNI debug targets."),
+        ("native-release", "Build Android native/JNI release targets."),
+        ("test-debug", "Run Android debug unit tests."),
+    ]:
+        android_subparser = android_subparsers.add_parser(
+            android_cmd_name,
+            help=android_help,
+        )
+        android_subparser.add_argument(
+            "extra_args",
+            nargs=argparse.REMAINDER,
+            help=argparse.SUPPRESS,
+        )
 
     # Common args
     common = [
@@ -244,9 +270,13 @@ def main():
 
     args = parser.parse_args()
     
-    if args.app_path:
+    if getattr(args, "app_path", None):
         ctx.set_app_path_override(args.app, args.app_path)
-    
+
+    if args.command == "android":
+        cmd = AndroidCommand(repo_root)
+        sys.exit(cmd.execute(args.android_command, args.extra_args))
+
     if args.command == "configure":
         kill_build_procs = bool(args.kill_build_procs and not args.no_kill_build_procs)
         cmd = BuildCommand(ctx)

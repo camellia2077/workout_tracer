@@ -7,7 +7,7 @@
 ├── build.sh
 ├── CMakeLists.txt
 ├── main.cpp
-├── mapping.json
+├── mapping.toml
 ├── common/
 │   ├── JsonReader.cpp
 │   ├── JsonReader.hpp

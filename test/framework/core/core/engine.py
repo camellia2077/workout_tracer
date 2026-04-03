@@ -1,4 +1,5 @@
 # test/core/engine.py
+import shutil
 import time
 from pathlib import Path
 from typing import Dict, List, Optional
@@ -94,6 +95,7 @@ class TestEngine:
                     should_deploy=self.run_control.ENABLE_ENVIRONMENT_PREPARE,
                 )
                 self.paths.TARGET_EXECUTABLES_DIR = final_exe_path
+                self._sync_latest_config_into_workspace()
 
             if self.run_control.ENABLE_TEST_EXECUTION:
                 if self.paths.PROCESSED_JSON_DIR:
@@ -115,6 +117,18 @@ class TestEngine:
         finally:
             if self.env_manager:
                 self.env_manager.teardown()
+
+    def _sync_latest_config_into_workspace(self) -> None:
+        if not self.paths.PROJECT_APPS_ROOT or not self.paths.TARGET_EXECUTABLES_DIR:
+            return
+
+        source_config_dir = self.paths.PROJECT_APPS_ROOT / "config"
+        if not source_config_dir.is_dir():
+            return
+
+        target_config_dir = self.paths.TARGET_EXECUTABLES_DIR / "config"
+        target_config_dir.mkdir(parents=True, exist_ok=True)
+        shutil.copytree(source_config_dir, target_config_dir, dirs_exist_ok=True)
 
     def get_result(self) -> Dict:
         return dict(self.run_result)

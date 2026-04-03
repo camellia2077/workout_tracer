@@ -5,7 +5,7 @@ enable_test_execution = 1
 stop_on_failure = 1
 
 [paths]
-test_data_path = "../../data/records"
+test_data_path = "../../data"
 
 [[commands]]
 name = "Root Help"
@@ -70,12 +70,41 @@ stage = "help"
 args = ["query", "volume", "--help"]
 expect_exit = 0
 expect_stderr_contains = [
-  "Usage: workout_tracker_cli.exe query volume --type <type> --cycle <cycle>",
+  "Usage: workout_tracker_cli.exe query volume --type <type> --cycle <cycle> [--unit <original|kg|lb>]",
   "Options:",
   "--type <type>",
   "--cycle <cycle>",
+  "--unit <original|kg|lb>",
   "Examples:",
-  "query volume --type push --cycle 2025-07-05"
+  "query volume --type push --cycle 2025-07"
+]
+
+[[commands]]
+name = "PR Help"
+stage = "help"
+args = ["query", "pr", "--help"]
+expect_exit = 0
+expect_stderr_contains = [
+  "Usage: workout_tracker_cli.exe query pr [--unit <original|kg|lb>]",
+  "Options:",
+  "--unit <original|kg|lb>",
+  "Examples:",
+  "query pr --unit lb"
+]
+
+[[commands]]
+name = "Export Help"
+stage = "help"
+args = ["report", "export", "--help"]
+expect_exit = 0
+expect_stderr_contains = [
+  "Usage: workout_tracker_cli.exe report export [--cycle <YYYY-MM>] [--unit <original|kg|lb>]",
+  "Options:",
+  "--cycle <YYYY-MM>",
+  "--unit <original|kg|lb>",
+  "Examples:",
+  "report export --cycle 2025-07",
+  "report export --unit lb"
 ]
 
 [[commands]]
@@ -112,11 +141,11 @@ expect_stderr_contains = [
 [[commands]]
 name = "Volume Missing Type"
 stage = "errors"
-args = ["query", "volume", "--cycle", "2025-07-05"]
+args = ["query", "volume", "--cycle", "2025-07"]
 expect_exit = 1
 expect_stderr_contains = [
   "Error: Both --type and --cycle are required for volume query.",
-  "Usage: workout_tracker_cli.exe query volume --type <type> --cycle <cycle>"
+  "Usage: workout_tracker_cli.exe query volume --type <type> --cycle <cycle> [--unit <original|kg|lb>]"
 ]
 
 [[commands]]
@@ -126,7 +155,16 @@ args = ["query", "volume", "--type", "push"]
 expect_exit = 1
 expect_stderr_contains = [
   "Error: Both --type and --cycle are required for volume query.",
-  "Usage: workout_tracker_cli.exe query volume --type <type> --cycle <cycle>"
+  "Usage: workout_tracker_cli.exe query volume --type <type> --cycle <cycle> [--unit <original|kg|lb>]"
+]
+
+[[commands]]
+name = "Export Invalid Cycle"
+stage = "errors"
+args = ["report", "export", "--cycle", "2025-07-05"]
+expect_exit = 1
+expect_stderr_contains = [
+  "Error: '--cycle' must be in YYYY-MM format."
 ]
 
 [[commands]]
@@ -141,8 +179,9 @@ stage = "pipeline"
 args = ["data", "convert", "{data_path}"]
 expect_exit = 0
 expect_files = [
-  "{processed_json_dir}/2025_7.json",
-  "{processed_json_dir}/2025_9.json"
+  "{processed_json_dir}/2025-03.json",
+  "{processed_json_dir}/2025-07.json",
+  "{processed_json_dir}/2025-09.json"
 ]
 
 [[commands]]
@@ -153,9 +192,16 @@ expect_exit = 0
 expect_files = ["{db_path}"]
 
 [[commands]]
+name = "Export Reports By Cycle"
+stage = "pipeline"
+args = ["report", "export", "--cycle", "2025-07", "--unit", "lb"]
+expect_exit = 0
+expect_files = ["{exe_dir}/output/reports/2025-07/pull.md"]
+
+[[commands]]
 name = "Export Reports"
 stage = "pipeline"
-args = ["report", "export"]
+args = ["report", "export", "--unit", "lb"]
 expect_exit = 0
 expect_files = ["{exe_dir}/output/reports/Summary.md"]
 
@@ -181,15 +227,30 @@ expect_exit = 0
 expect_stdout_contains = ["[push]"]
 
 [[commands]]
-name = "Query Personal Records"
+name = "Query Personal Records Original"
 stage = "query"
-args = ["query", "pr"]
+args = ["query", "pr", "--unit", "original"]
 expect_exit = 0
-expect_stdout_contains = ["Personal Records"]
+expect_stdout_contains = ["Personal Records", "kg x"]
 
 [[commands]]
-name = "Query Push Volume"
+name = "Query Personal Records LB"
 stage = "query"
-args = ["query", "volume", "--type", "push", "--cycle", "2025-07-05"]
+args = ["query", "pr", "--unit", "lb"]
 expect_exit = 0
-expect_stdout_contains = ["Advanced Kinematics Analysis"]
+expect_stdout_contains = ["Personal Records", "lb x"]
+
+[[commands]]
+name = "Query Pull Volume Original Fallback"
+stage = "query"
+args = ["query", "volume", "--type", "pull", "--cycle", "2025-07", "--unit", "original"]
+expect_exit = 0
+expect_stdout_contains = ["Advanced Kinematics Analysis", "kg/rep"]
+expect_stdout_not_contains = ["lb/rep"]
+
+[[commands]]
+name = "Query Push Volume LB"
+stage = "query"
+args = ["query", "volume", "--type", "push", "--cycle", "2025-07", "--unit", "lb"]
+expect_exit = 0
+expect_stdout_contains = ["Advanced Kinematics Analysis", "lb/rep"]

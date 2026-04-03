@@ -22,6 +22,13 @@ All commands are accessed via the root `tools/run.py`.
 # Example: Run tidy for time_tracer
 python tools/run.py tidy --app time_tracer
 
+# Android commands from the repo root
+python tools/run.py android assemble-debug
+python tools/run.py android assemble-release
+python tools/run.py android native-debug
+python tools/run.py android native-release
+python tools/run.py android test-debug
+
 # Configure and build are split commands
 python tools/run.py configure --app time_tracer
 python tools/run.py build --app time_tracer

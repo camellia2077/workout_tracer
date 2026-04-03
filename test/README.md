@@ -10,7 +10,7 @@ Unified executable test workspace.
 - `compat/`: legacy wrappers forwarding to unified runner.
   - `compat/workout_calculator/`: `run.bat`, `run_fast.bat`, `run_agent.bat`
 - `suites/workout_calculator/`: table-driven suite config for `main` app.
-- `data/`: shared input data (`data/records`).
+- `data/`: shared input data.
 - `output/`: all generated runtime artifacts.
 - `run.py`: unified entrypoint (`--suite workout_calculator`).
 - `run_workout_calculator.bat`: scenario launcher.

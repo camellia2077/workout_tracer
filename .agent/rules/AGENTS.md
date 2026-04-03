@@ -27,3 +27,11 @@ python test/run.py --suite workout_calculator --build-dir build_agent --concise
 ## CLI / Python 命令约定
 - 对于 Python 工具命令，优先使用分层 `--help` 逐层查看说明，不要一次性打印根级全部帮助。
 - 推荐顺序：先看主命令 `--help`，再看子命令 `--help`，最后再执行具体命令。
+- Android 构建在仓库根目录使用 Python 入口：
+```bash
+python tools/run.py android assemble-debug
+python tools/run.py android assemble-release
+python tools/run.py android native-debug
+python tools/run.py android native-release
+python tools/run.py android test-debug
+```
