@@ -2,7 +2,6 @@ import re
 from pathlib import Path
 from typing import Any, Iterable
 
-
 IDENTIFIER_PATTERN = re.compile(r"^[a-zA-Z_][a-zA-Z0-9_]*$")
 BRACE_VAR_PATTERN = re.compile(r"(?<!\{)\{([a-zA-Z_][a-zA-Z0-9_]*)\}(?!\})")
 DOLLAR_VAR_PATTERN = re.compile(r"\$\{([a-zA-Z_][a-zA-Z0-9_]*)\}")
@@ -120,16 +119,23 @@ def _validate_paths(
 
     if "default_build_dir" in paths:
         _require_non_empty_string(paths, "default_build_dir", "paths", errors)
+    if "project_build_root" in paths:
+        _require_non_empty_string(paths, "project_build_root", "paths", errors)
 
     project_apps_root = _require_non_empty_string(
         paths, "project_apps_root", "paths", errors
     )
+    project_build_root = paths.get("project_build_root")
+    if isinstance(project_build_root, str) and not project_build_root.strip():
+        project_build_root = None
     test_data_path = _require_non_empty_string(paths, "test_data_path", "paths", errors)
 
     must_exist_map = {
         "paths.project_apps_root": project_apps_root,
         "paths.test_data_path": test_data_path,
     }
+    if isinstance(project_build_root, str) and project_build_root:
+        must_exist_map["paths.project_build_root"] = project_build_root
     for field_path, field_value in must_exist_map.items():
         if not field_value:
             continue

@@ -1,7 +1,9 @@
 import os
 import tomllib
 from pathlib import Path
-from .config import AgentConfig, TidyConfig, AppConfig, RenameConfig, BuildConfig
+
+from .config import AgentConfig, AppConfig, BuildConfig, RenameConfig, TidyConfig
+
 
 class Context:
     def __init__(self, repo_root: Path):
@@ -60,6 +62,14 @@ class Context:
             
         # 3. Fallback
         return self.apps_root / app_name
+
+    def get_build_root(self) -> Path:
+        build_root = Path(self.config.build.build_root)
+        return build_root if build_root.is_absolute() else self.repo_root / build_root
+
+    def get_build_dir(self, app_name: str, build_dir_name: str) -> Path:
+        del app_name
+        return self.get_build_root() / build_dir_name
 
     def get_app_metadata(self, app_name: str) -> AppConfig:
         if app_name not in self.config.apps:

@@ -3,7 +3,8 @@ import re
 import sys
 from pathlib import Path
 from typing import Any, Dict
-from .definitions import Paths, CLINames, Cleanup, RunControl, GlobalConfig, CommandSpec
+
+from .definitions import Cleanup, CLINames, CommandSpec, GlobalConfig, Paths, RunControl
 from .schema_validator import validate_suite_schema
 
 # Python 3.11+ 内置 tomllib
@@ -12,8 +13,10 @@ if sys.version_info >= (3, 11):
 else:
     try:
         import tomli as tomllib
-    except ImportError:
-        raise ImportError("For Python versions < 3.11, please install 'tomli' using 'pip install tomli'")
+    except ImportError as error:
+        raise ImportError(
+            "For Python versions < 3.11, please install 'tomli' using 'pip install tomli'"
+        ) from error
 
 def _merge_toml(base, override, key_path=""):
     if isinstance(base, dict) and isinstance(override, dict):
@@ -36,6 +39,7 @@ def _merge_toml(base, override, key_path=""):
 _VAR_PATTERN = re.compile(r"\$\{([a-zA-Z_][a-zA-Z0-9_]*)\}")
 _PATH_KEYS = {
     "project_apps_root",
+    "project_build_root",
     "source_executables_dir",
     "test_data_path",
     "target_executables_dir",
@@ -150,6 +154,10 @@ def _load_paths(toml_data) -> Paths:
     # 项目应用程序根目录
     project_apps_root = paths_data.get("project_apps_root")
     paths_inst.PROJECT_APPS_ROOT = Path(project_apps_root) if project_apps_root else None
+    project_build_root = paths_data.get("project_build_root")
+    paths_inst.PROJECT_BUILD_ROOT = (
+        Path(project_build_root) if project_build_root else None
+    )
 
     # 源执行文件目录
     source_exe_dir = paths_data.get("source_executables_dir")
@@ -166,12 +174,13 @@ def _load_paths(toml_data) -> Paths:
     else:
         # [新增] 如果提供了 build_dir_name 且有项目根目录，则动态重写
         build_dir_name = toml_data.get("_build_dir_name")
-        if build_dir_name and paths_inst.PROJECT_APPS_ROOT:
-            paths_inst.SOURCE_EXECUTABLES_DIR = paths_inst.PROJECT_APPS_ROOT / build_dir_name / "bin"
+        build_root = paths_inst.PROJECT_BUILD_ROOT or paths_inst.PROJECT_APPS_ROOT
+        if build_dir_name and build_root:
+            paths_inst.SOURCE_EXECUTABLES_DIR = build_root / build_dir_name / "bin"
             print(f"  - Build Folder override active: Using {build_dir_name}")
-    if build_dir_name and not paths_inst.PROJECT_APPS_ROOT:
+    if build_dir_name and not (paths_inst.PROJECT_BUILD_ROOT or paths_inst.PROJECT_APPS_ROOT):
         raise ValueError(
-            "Config error: [paths].project_apps_root is required when using --build-dir."
+            "Config error: [paths].project_build_root or [paths].project_apps_root is required when using --build-dir."
         )
     if not bin_dir and not build_dir_name:
         raise ValueError(
@@ -310,7 +319,7 @@ def _expand_command_groups(toml_data) -> list[CommandSpec]:
 
         name_template = group.get("name_template")
         for combo in combos:
-            variables = dict(zip(keys, combo))
+            variables = dict(zip(keys, combo, strict=False))
             args = [_safe_format(str(t), variables) for t in template]
 
             if name_template:
@@ -386,7 +395,9 @@ def load_config(config_path: Path = None, build_dir_name: str = None,
         
     except FileNotFoundError:
         # [修改] 提示信息带上尝试寻找的路径，方便排错
-        raise FileNotFoundError(f"config.toml not found at: {target_path.absolute()}")
+        raise FileNotFoundError(
+            f"config.toml not found at: {target_path.absolute()}"
+        ) from None
     except Exception as e:
-        raise RuntimeError(f"Error loading config.toml: {e}")
+        raise RuntimeError(f"Error loading config.toml: {e}") from e
 

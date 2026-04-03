@@ -25,7 +25,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--build-dir",
         default="build",
-        help="Build directory name under apps/<app> (default: build).",
+        help="Build directory name under repo build root (default: build).",
     )
     parser.add_argument(
         "--output",
@@ -138,8 +138,7 @@ def collect_binary_imports(bin_dir: Path, artifacts: list[dict[str, object]]) ->
 def main() -> int:
     args = parse_args()
     repo_root = Path(__file__).resolve().parent.parent
-    app_dir = repo_root / "apps" / args.app
-    build_dir = app_dir / args.build_dir
+    build_dir = repo_root / "build" / args.build_dir
     bin_dir = build_dir / "bin"
     output_path = Path(args.output)
     if not output_path.is_absolute():

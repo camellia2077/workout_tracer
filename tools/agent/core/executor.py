@@ -1,7 +1,8 @@
-import sys
 import subprocess
+import sys
 from pathlib import Path
 from typing import List, Optional
+
 
 def kill_build_processes(process_names: Optional[List[str]] = None) -> None:
     names = process_names or ["cmake.exe", "ninja.exe", "ccache.exe"]

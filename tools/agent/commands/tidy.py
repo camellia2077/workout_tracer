@@ -3,6 +3,7 @@ import re
 import time
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
+
 from ..core.context import Context
 from ..core.executor import run_command
 from ..services import log_parser, task_sorter
@@ -23,8 +24,7 @@ class TidyCommand:
     ):
         from .build import BuildCommand
         
-        app_dir = self.ctx.get_app_dir(app_name)
-        build_dir = app_dir / "build_tidy"
+        build_dir = self.ctx.get_build_dir(app_name, "build_tidy")
         log_path = build_dir / "build.log"
         tasks_dir = build_dir / "tasks"
         ninja_log_path = build_dir / ".ninja_log"
@@ -112,8 +112,7 @@ class TidyCommand:
         max_diags: int | None = None,
         batch_size: int | None = None,
     ) -> int:
-        app_dir = self.ctx.get_app_dir(app_name)
-        build_dir = app_dir / "build_tidy"
+        build_dir = self.ctx.get_build_dir(app_name, "build_tidy")
         log_path = build_dir / "build.log"
         tasks_dir = build_dir / "tasks"
 

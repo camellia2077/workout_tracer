@@ -15,8 +15,7 @@ class TidyFixCommand:
     ) -> int:
         from .build import BuildCommand
 
-        app_dir = self.ctx.get_app_dir(app_name)
-        build_dir = app_dir / "build_tidy"
+        build_dir = self.ctx.get_build_dir(app_name, "build_tidy")
 
         if not (build_dir / "CMakeCache.txt").exists():
             print("--- tidy-fix: build_tidy is not configured. Running auto-configure...")

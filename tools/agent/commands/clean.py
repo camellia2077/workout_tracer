@@ -1,14 +1,14 @@
-from pathlib import Path
 from ..core.context import Context
+
 
 class CleanCommand:
     def __init__(self, ctx: Context):
         self.ctx = ctx
 
     def execute(self, app_name: str, task_ids: list):
-        app_dir = self.ctx.get_app_dir(app_name)
-        tasks_dir = app_dir / "build_tidy" / "tasks"
-        done_dir = app_dir / "build_tidy" / "tasks_done"
+        build_tidy_dir = self.ctx.get_build_dir(app_name, "build_tidy")
+        tasks_dir = build_tidy_dir / "tasks"
+        done_dir = build_tidy_dir / "tasks_done"
         
         if not tasks_dir.exists():
             return 0

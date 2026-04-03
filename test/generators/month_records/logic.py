@@ -4,7 +4,6 @@ import calendar
 import datetime as dt
 from typing import Iterable
 
-
 MONDAY = 0
 WEDNESDAY = 2
 FRIDAY = 4

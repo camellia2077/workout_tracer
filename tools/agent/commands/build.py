@@ -1,6 +1,7 @@
 from ..core.context import Context
 from ..core.executor import kill_build_processes, run_command
 
+
 class BuildCommand:
     def __init__(self, ctx: Context):
         self.ctx = ctx
@@ -61,7 +62,7 @@ class BuildCommand:
 
         app = self.ctx.get_app_metadata(app_name)
         resolved_build_dir_name = self._resolve_build_dir_name(tidy, build_dir_name)
-        build_dir = self.ctx.get_app_dir(app_name) / resolved_build_dir_name
+        build_dir = self.ctx.get_build_dir(app_name, resolved_build_dir_name)
         source_dir = self.ctx.get_app_dir(app_name)
 
         
@@ -91,7 +92,7 @@ class BuildCommand:
             kill_build_processes()
 
         resolved_build_dir_name = self._resolve_build_dir_name(tidy, build_dir_name)
-        build_dir = self.ctx.get_app_dir(app_name) / resolved_build_dir_name
+        build_dir = self.ctx.get_build_dir(app_name, resolved_build_dir_name)
         filtered_args = [a for a in (extra_args or []) if a != "--"]
         build_cmd = ["cmake", "--build", str(build_dir), "-j"] + filtered_args
         return run_command(build_cmd, env=self.ctx.setup_env())
@@ -114,7 +115,8 @@ class BuildCommand:
             build_dir_name=build_dir_name,
             kill_build_procs=False,
         )
-        if ret != 0: return ret
+        if ret != 0:
+            return ret
         return self.build(
             app_name,
             tidy,

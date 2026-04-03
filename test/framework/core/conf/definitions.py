@@ -110,6 +110,7 @@ class CommandSpec:
 @dataclass
 class Paths:
     PROJECT_APPS_ROOT: Optional[Path] = None
+    PROJECT_BUILD_ROOT: Optional[Path] = None
     DEFAULT_BUILD_DIR: Optional[str] = None
     SOURCE_EXECUTABLES_DIR: Optional[Path] = None
     SOURCE_DATA_PATH: Optional[Path] = None

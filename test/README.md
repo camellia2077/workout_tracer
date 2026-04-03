@@ -11,7 +11,6 @@ Unified executable test workspace.
   - `compat/workout_calculator/`: `run.bat`, `run_fast.bat`, `run_agent.bat`
 - `suites/workout_calculator/`: table-driven suite config for `main` app.
 - `data/`: shared input data.
-- `output/`: all generated runtime artifacts.
 - `run.py`: unified entrypoint (`--suite workout_calculator`).
 - `run_workout_calculator.bat`: scenario launcher.
 
@@ -19,10 +18,10 @@ Unified executable test workspace.
 
 Suite writes into:
 
-- `output/workout_calculator/workspace`: copied binaries and runtime workspace.
-- `output/workout_calculator/logs`: per-case logs + python output log.
-- `output/workout_calculator/artifacts`: generated report/output files.
-- `output/workout_calculator/result.json`: machine-readable summary.
+- `../output/tests/workout_calculator/workspace`: copied binaries and runtime workspace.
+- `../output/tests/workout_calculator/logs`: per-case logs + python output log.
+- `../output/tests/workout_calculator/artifacts`: generated report/output files.
+- `../output/tests/workout_calculator/result.json`: machine-readable summary.
 
 ## Config path variables
 

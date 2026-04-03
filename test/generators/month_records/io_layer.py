@@ -1,8 +1,7 @@
 from __future__ import annotations
 
-from pathlib import Path
-
 import tomllib
+from pathlib import Path
 
 
 def load_exercise_keys(mapping_path: Path) -> list[str]:

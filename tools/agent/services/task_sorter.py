@@ -1,4 +1,4 @@
-from typing import List, Dict
+from typing import Dict, List
 
 # Difficulty weights for common Clang-Tidy checks (lower is easier)
 CHECK_WEIGHTS = {

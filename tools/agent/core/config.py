@@ -1,5 +1,6 @@
 from dataclasses import dataclass, field
 
+
 @dataclass
 class AppConfig:
     path: str
@@ -8,6 +9,7 @@ class AppConfig:
 
 @dataclass
 class BuildConfig:
+    build_root: str = "build"
     compiler: str = "default"
     c_compiler: str | None = None
     cxx_compiler: str | None = None

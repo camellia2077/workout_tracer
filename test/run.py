@@ -15,7 +15,6 @@ sys.path.insert(0, str(framework_root))
 
 from suite_runner import run_suite
 
-
 SUITE_META = {
     "workout_calculator": {
         "suite_name": "workout_calculator",
@@ -106,11 +105,37 @@ def _resolve_app_root(repo_root: Path, app_name: str) -> Path:
     return repo_root / "apps" / app_name
 
 
+def _resolve_build_root(repo_root: Path) -> Path:
+    config_candidates = [
+        repo_root / "tools" / "config.toml",
+        repo_root / "scripts" / "config.toml",
+    ]
+    config_path = next((path for path in config_candidates if path.exists()), None)
+    if config_path is not None:
+        try:
+            with config_path.open("rb") as file:
+                data = tomllib.load(file)
+            build_cfg = data.get("build", {})
+            configured_root = (
+                build_cfg.get("build_root") if isinstance(build_cfg, dict) else None
+            )
+            if isinstance(configured_root, str) and configured_root.strip():
+                root_path = Path(configured_root.strip())
+                return root_path if root_path.is_absolute() else (repo_root / root_path)
+        except Exception as error:
+            print(
+                f"Warning: failed to parse {config_path} for build root: {error}",
+                flush=True,
+            )
+
+    return repo_root / "build"
+
+
 def _auto_detect_build_dir(repo_root: Path, app_name: str) -> str | None:
-    app_root = _resolve_app_root(repo_root, app_name)
+    build_root = _resolve_build_root(repo_root)
     candidates = ["build_agent", "build_fast", "build_tidy", "build"]
     for candidate in candidates:
-        candidate_bin = app_root / candidate / "bin"
+        candidate_bin = build_root / candidate / "bin"
         if candidate_bin.exists() and candidate_bin.is_dir():
             return candidate
     return None
@@ -158,8 +183,8 @@ def _ensure_bin_dir_exists(
     if bin_dir:
         candidate = Path(bin_dir).resolve()
     elif build_dir:
-        app_root = _resolve_app_root(repo_root=repo_root, app_name=app_name)
-        candidate = (app_root / build_dir / "bin").resolve()
+        build_root = _resolve_build_root(repo_root=repo_root)
+        candidate = (build_root / build_dir / "bin").resolve()
     else:
         print("Error: no executable directory is resolved.")
         print("Hint: pass --build-dir or --bin-dir, or use --with-build.")
@@ -211,7 +236,7 @@ def parse_args(argv):
         "--build-dir",
         default=None,
         help=(
-            "Build folder under configured app path, e.g. build/build_fast/build_agent. "
+            "Build folder under configured build root, e.g. build_agent/build_fast/build_tidy. "
             "If omitted, uses suite TOML [paths].default_build_dir when set."
         ),
     )

@@ -8,6 +8,7 @@ cmake_flags = [
 ]
 
 [build]
+build_root = "build"
 # Toolchain selector used by tools/run.py configure.
 # Values: "default" | "clang" | "gcc"
 # NOTE:

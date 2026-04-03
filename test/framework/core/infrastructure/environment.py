@@ -2,8 +2,9 @@
 from pathlib import Path
 from typing import List, Optional
 
-from .workspace import Workspace
 from .deployer import ArtifactDeployer
+from .workspace import Workspace
+
 
 class EnvironmentManager:
     """

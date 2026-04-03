@@ -29,8 +29,7 @@ class TidyLoopCommand:
             return 0
 
         effective_test_every = max(1, test_every)
-        app_dir = self.ctx.get_app_dir(app_name)
-        tasks_dir = app_dir / "build_tidy" / "tasks"
+        tasks_dir = self.ctx.get_build_dir(app_name, "build_tidy") / "tasks"
         if not tasks_dir.exists():
             print(f"--- tidy-loop: tasks directory not found: {tasks_dir}")
             return 1
@@ -155,8 +154,7 @@ class TidyLoopCommand:
     def _ensure_build_configured(
         self, app_name: str, kill_build_procs: bool
     ) -> int:
-        app_dir = self.ctx.get_app_dir(app_name)
-        build_dir = app_dir / "build_agent"
+        build_dir = self.ctx.get_build_dir(app_name, "build_agent")
         if (build_dir / "CMakeCache.txt").exists():
             return 0
 

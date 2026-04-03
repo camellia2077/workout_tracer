@@ -5,8 +5,7 @@ from pathlib import Path
 from typing import Dict, List, Optional
 
 from ..cases.version import VersionChecker
-from ..conf.definitions import (CommandSpec, GlobalConfig, TestContext,
-                                 TestReport)
+from ..conf.definitions import CommandSpec, GlobalConfig, TestContext, TestReport
 from ..infrastructure.environment import EnvironmentManager
 from .base import BaseTester, TestCounter
 from .reporter import Reporter

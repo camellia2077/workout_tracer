@@ -1,5 +1,6 @@
 build/
 build_*/
+output/
 temp/
 /bin/
 !bin/config/

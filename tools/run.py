@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
-import sys
 import argparse
+import sys
 from pathlib import Path
 
 # Add current directory to path
@@ -9,15 +9,15 @@ sys.path.append(str(SCRIPT_DIR))
 
 try:
     from agent.commands.android import AndroidCommand
-    from agent.core.context import Context
     from agent.commands.build import BuildCommand
+    from agent.commands.clean import CleanCommand
     from agent.commands.format import FormatCommand
+    from agent.commands.rename import RenameCommand
     from agent.commands.tidy import TidyCommand
     from agent.commands.tidy_fix import TidyFixCommand
-    from agent.commands.tidy_loop import TidyLoopCommand
     from agent.commands.tidy_flow import TidyFlowCommand
-    from agent.commands.clean import CleanCommand
-    from agent.commands.rename import RenameCommand
+    from agent.commands.tidy_loop import TidyLoopCommand
+    from agent.core.context import Context
 except ImportError as e:
     print(f"Error: Could not load internal agent modules.\n{e}")
     sys.exit(1)

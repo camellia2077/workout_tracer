@@ -7,8 +7,7 @@ from typing import Any, Optional, Sequence
 from core.main import main
 
 from .args import parse_suite_args
-from .formatting import (run_clang_format_after_success,
-                         should_run_format_on_success)
+from .formatting import run_clang_format_after_success, should_run_format_on_success
 from .io import TeeStream, resolve_path, write_result_json
 
 
@@ -131,7 +130,7 @@ def run_suite(
 ) -> int:
     workspace_root = test_root if test_root else suite_root.parent
     repo_root = workspace_root.parent
-    suite_output_root = workspace_root / "output" / suite_name
+    suite_output_root = repo_root / "output" / "tests" / suite_name
     logs_root = suite_output_root / "logs"
     artifacts_root = suite_output_root / "artifacts"
     logs_root.mkdir(parents=True, exist_ok=True)

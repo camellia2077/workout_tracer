@@ -39,8 +39,7 @@ class TidyFlowCommand:
             print("--- tidy-flow: n <= 0, nothing to do.")
             return 0
 
-        app_dir = self.ctx.get_app_dir(app_name)
-        build_tidy_dir = app_dir / "build_tidy"
+        build_tidy_dir = self.ctx.get_build_dir(app_name, "build_tidy")
         tasks_dir = build_tidy_dir / "tasks"
         state_path = build_tidy_dir / "flow_state.json"
         effective_test_every = max(1, test_every)

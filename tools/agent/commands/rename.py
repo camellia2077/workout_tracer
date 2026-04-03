@@ -17,7 +17,7 @@ class RenameCommand:
 
     def _paths(self, app_name: str) -> Dict[str, Path]:
         app_dir = self.ctx.get_app_dir(app_name)
-        build_tidy_dir = app_dir / "build_tidy"
+        build_tidy_dir = self.ctx.get_build_dir(app_name, "build_tidy")
         tasks_dir = build_tidy_dir / "tasks"
         rename_dir = build_tidy_dir / "rename"
         return {
@@ -155,7 +155,7 @@ class RenameCommand:
         return old_count, new_count
 
     def _ensure_tidy_build_ready(self, app_name: str) -> int:
-        build_tidy_dir = self.ctx.get_app_dir(app_name) / "build_tidy"
+        build_tidy_dir = self.ctx.get_build_dir(app_name, "build_tidy")
         compile_commands_path = build_tidy_dir / "compile_commands.json"
         if compile_commands_path.exists():
             return 0

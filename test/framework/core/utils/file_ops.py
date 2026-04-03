@@ -2,6 +2,7 @@
 import os
 from pathlib import Path
 
+
 def get_folder_size(folder_path: Path) -> int:
     """Calculates the total size of a folder and all its subfolders."""
     total_size = 0
