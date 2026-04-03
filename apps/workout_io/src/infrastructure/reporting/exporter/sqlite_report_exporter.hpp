@@ -9,7 +9,9 @@ class SqliteReportExporter : public IReportExporter {
 public:
   explicit SqliteReportExporter(std::string db_path);
 
-  [[nodiscard]] auto ExportReports(const std::string& output_dir)
+  [[nodiscard]] auto ExportReports(const std::string& output_dir,
+                                   const std::string& display_unit,
+                                   const std::string& cycle_id_filter)
       -> UseCaseResult<void> override;
 
 private:

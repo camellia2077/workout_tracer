@@ -2,10 +2,25 @@
 #ifndef CLI_COMMANDS_VOLUME_COMMAND_HPP_
 #define CLI_COMMANDS_VOLUME_COMMAND_HPP_
 
+#include "cli/commands/display_unit_option.hpp"
 #include "cli/framework/command.hpp"
+#include <cctype>
 #include <iostream>
 
 namespace cli::commands {
+
+namespace {
+inline auto IsYearMonthFormat(std::string_view value) -> bool {
+  return value.size() == 7 &&
+         std::isdigit(static_cast<unsigned char>(value[0])) != 0 &&
+         std::isdigit(static_cast<unsigned char>(value[1])) != 0 &&
+         std::isdigit(static_cast<unsigned char>(value[2])) != 0 &&
+         std::isdigit(static_cast<unsigned char>(value[3])) != 0 &&
+         value[4] == '-' &&
+         std::isdigit(static_cast<unsigned char>(value[5])) != 0 &&
+         std::isdigit(static_cast<unsigned char>(value[6])) != 0;
+}
+} // namespace
 
 class VolumeCommand : public framework::Command {
 public:
@@ -23,21 +38,26 @@ public:
 
   auto GetUsage(std::string_view program_name) const -> std::string override {
     return std::string(program_name) +
-           " query volume --type <type> --cycle <cycle>";
+           " query volume --type <type> --cycle <cycle> "
+           "[--unit <original|kg|lb>]";
   }
 
   auto GetExamples(std::string_view program_name) const
       -> std::vector<std::string> override {
     return {
         std::string(program_name) +
-        " query volume --type push --cycle 2025-07-05",
+        " query volume --type push --cycle 2025-07",
+        std::string(program_name) +
+        " query volume --type push --cycle 2025-07 --unit lb",
     };
   }
 
   auto GetOptions() const -> HelpEntries override {
     return {
         {"--type <type>", "Workout type to query."},
-        {"--cycle <cycle>", "Training cycle identifier to query."},
+        {"--cycle <cycle>", "Training cycle identifier (YYYY-MM)."},
+        {"--unit <original|kg|lb>",
+         "Display aggregate weights in original, kg, or lb."},
     };
   }
 
@@ -58,6 +78,10 @@ public:
           return false;
         }
         config.cycle_id_filter_ = args[++i];
+      } else if (args[i] == "--unit") {
+        if (!ParseDisplayUnitArgument(args, i, config, "volume")) {
+          return false;
+        }
       } else {
         std::cerr << "Error: Unknown argument '" << args[i]
                   << "' for 'volume' command." << std::endl;
@@ -69,6 +93,10 @@ public:
       std::cerr
           << "Error: Both --type and --cycle are required for volume query."
           << std::endl;
+      return false;
+    }
+    if (!IsYearMonthFormat(config.cycle_id_filter_)) {
+      std::cerr << "Error: '--cycle' must be in YYYY-MM format." << std::endl;
       return false;
     }
 

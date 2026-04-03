@@ -9,11 +9,22 @@ auto QueryFacade::QueryAllPRs(sqlite3* sqlite_db)
     -> std::vector<PersonalRecord> {
   std::vector<PersonalRecord> prs;
   const char* sql =
-      "SELECT l.exercise_name, MAX(s.weight), s.reps, l.date "
-      "FROM training_sets s "
-      "JOIN training_logs l ON s.log_id = l.id "
-      "GROUP BY l.exercise_name "
-      "ORDER BY l.exercise_name ASC;";
+      "WITH ranked_prs AS ("
+      "  SELECT l.exercise_name, s.weight_kg, s.original_unit, "
+      "         s.original_weight_value, s.reps, l.date, "
+      "         ROW_NUMBER() OVER ("
+      "           PARTITION BY l.exercise_name "
+      "           ORDER BY s.weight_kg DESC, s.reps DESC, l.date DESC, "
+      "                    s.id DESC"
+      "         ) AS rank_index "
+      "  FROM training_sets s "
+      "  JOIN training_logs l ON s.log_id = l.id"
+      ") "
+      "SELECT exercise_name, weight_kg, original_unit, original_weight_value, "
+      "       reps, date "
+      "FROM ranked_prs "
+      "WHERE rank_index = 1 "
+      "ORDER BY exercise_name ASC;";
 
   sqlite3_stmt* stmt = nullptr;
   if (sqlite3_prepare_v2(sqlite_db, sql, -1, &stmt, nullptr) != SQLITE_OK) {
@@ -27,8 +38,13 @@ auto QueryFacade::QueryAllPRs(sqlite3* sqlite_db)
     record.exercise_name =
         reinterpret_cast<const char*>(sqlite3_column_text(stmt, 0));
     record.max_weight = sqlite3_column_double(stmt, 1);
-    record.reps = sqlite3_column_int(stmt, 2);
-    record.date = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 3));
+    const unsigned char* unit_text = sqlite3_column_text(stmt, 2);
+    record.original_unit = (unit_text != nullptr)
+                               ? reinterpret_cast<const char*>(unit_text)
+                               : "kg";
+    record.original_weight_value = sqlite3_column_double(stmt, 3);
+    record.reps = sqlite3_column_int(stmt, 4);
+    record.date = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 5));
 
     record.estimated_1rm_epley = TrainingMetricsService::EstimateOneRmEpley(
         record.max_weight, record.reps);
@@ -118,15 +134,19 @@ auto QueryFacade::GetVolumeStats(sqlite3* sqlite_db,
                                  const std::string& type)
     -> std::optional<VolumeStats> {
   const char* sql =
-      "SELECT l.cycle_id, l.exercise_type, SUM(s.weight * s.reps), "
+      "SELECT l.cycle_id, l.exercise_type, COALESCE(SUM(s.volume), 0.0), "
+      "CASE WHEN COUNT(DISTINCT s.original_unit) = 1 THEN "
+      "  MIN(s.original_unit) ELSE '' END, "
       "MAX(l.total_days), "
-      "CAST(SUM(s.weight * s.reps) AS DOUBLE) / SUM(s.reps), "
-      "COUNT(DISTINCT l.id), SUM(s.reps), COUNT(s.id), "
-      "SUM(CASE WHEN s.reps BETWEEN 1 AND 5 THEN s.weight * s.reps ELSE 0 "
+      "CASE WHEN SUM(s.reps) = 0 THEN 0.0 "
+      "  ELSE CAST(COALESCE(SUM(s.volume), 0.0) AS DOUBLE) / SUM(s.reps) "
+      "END, "
+      "COUNT(DISTINCT l.id), COALESCE(SUM(s.reps), 0), COUNT(s.id), "
+      "SUM(CASE WHEN s.reps BETWEEN 1 AND 5 THEN s.volume ELSE 0 "
       "END), "
-      "SUM(CASE WHEN s.reps BETWEEN 6 AND 12 THEN s.weight * s.reps ELSE 0 "
+      "SUM(CASE WHEN s.reps BETWEEN 6 AND 12 THEN s.volume ELSE 0 "
       "END), "
-      "SUM(CASE WHEN s.reps >= 13 THEN s.weight * s.reps ELSE 0 END) "
+      "SUM(CASE WHEN s.reps >= 13 THEN s.volume ELSE 0 END) "
       "FROM training_logs l "
       "JOIN training_sets s ON l.id = s.log_id "
       "WHERE l.cycle_id = ? AND l.exercise_type = ? "
@@ -147,14 +167,15 @@ auto QueryFacade::GetVolumeStats(sqlite3* sqlite_db,
     constexpr int kColCycleId = 0;
     constexpr int kColExerciseType = 1;
     constexpr int kColTotalVolume = 2;
-    constexpr int kColTotalDays = 3;
-    constexpr int kColAvgIntensity = 4;
-    constexpr int kColSessionCount = 5;
-    constexpr int kColTotalReps = 6;
-    constexpr int kColTotalSets = 7;
-    constexpr int kColVolPower = 8;
-    constexpr int kColVolHypertrophy = 9;
-    constexpr int kColVolEndurance = 10;
+    constexpr int kColCommonOriginalUnit = 3;
+    constexpr int kColTotalDays = 4;
+    constexpr int kColAvgIntensity = 5;
+    constexpr int kColSessionCount = 6;
+    constexpr int kColTotalReps = 7;
+    constexpr int kColTotalSets = 8;
+    constexpr int kColVolPower = 9;
+    constexpr int kColVolHypertrophy = 10;
+    constexpr int kColVolEndurance = 11;
 
     VolumeStats v_stats;
     v_stats.cycle_id =
@@ -162,6 +183,10 @@ auto QueryFacade::GetVolumeStats(sqlite3* sqlite_db,
     v_stats.exercise_type = reinterpret_cast<const char*>(
         sqlite3_column_text(stmt, kColExerciseType));
     v_stats.total_volume = sqlite3_column_double(stmt, kColTotalVolume);
+    const unsigned char* unit_text =
+        sqlite3_column_text(stmt, kColCommonOriginalUnit);
+    v_stats.common_original_unit =
+        (unit_text != nullptr) ? reinterpret_cast<const char*>(unit_text) : "";
     v_stats.total_days = sqlite3_column_int(stmt, kColTotalDays);
     v_stats.average_intensity = sqlite3_column_double(stmt, kColAvgIntensity);
     v_stats.session_count = sqlite3_column_int(stmt, kColSessionCount);
@@ -175,4 +200,74 @@ auto QueryFacade::GetVolumeStats(sqlite3* sqlite_db,
 
   sqlite3_finalize(stmt);
   return stats;
+}
+
+auto QueryFacade::GetVolumeStatsByCycle(sqlite3* sqlite_db,
+                                        const std::string& cycle_id)
+    -> std::vector<VolumeStats> {
+  const char* sql =
+      "SELECT l.cycle_id, l.exercise_type, COALESCE(SUM(s.volume), 0.0), "
+      "CASE WHEN COUNT(DISTINCT s.original_unit) = 1 THEN "
+      "  MIN(s.original_unit) ELSE '' END, "
+      "MAX(l.total_days), "
+      "CASE WHEN SUM(s.reps) = 0 THEN 0.0 "
+      "  ELSE CAST(COALESCE(SUM(s.volume), 0.0) AS DOUBLE) / SUM(s.reps) "
+      "END, "
+      "COUNT(DISTINCT l.id), COALESCE(SUM(s.reps), 0), COUNT(s.id), "
+      "SUM(CASE WHEN s.reps BETWEEN 1 AND 5 THEN s.volume ELSE 0 END), "
+      "SUM(CASE WHEN s.reps BETWEEN 6 AND 12 THEN s.volume ELSE 0 END), "
+      "SUM(CASE WHEN s.reps >= 13 THEN s.volume ELSE 0 END) "
+      "FROM training_logs l "
+      "JOIN training_sets s ON l.id = s.log_id "
+      "WHERE l.cycle_id = ? "
+      "GROUP BY l.cycle_id, l.exercise_type "
+      "ORDER BY l.exercise_type ASC;";
+
+  sqlite3_stmt* stmt = nullptr;
+  if (sqlite3_prepare_v2(sqlite_db, sql, -1, &stmt, nullptr) != SQLITE_OK) {
+    std::cerr << "SQL error preparing cycle volume stats query: "
+              << sqlite3_errmsg(sqlite_db) << std::endl;
+    return {};
+  }
+
+  sqlite3_bind_text(stmt, 1, cycle_id.c_str(), -1, SQLITE_STATIC);
+
+  std::vector<VolumeStats> stats_list;
+  while (sqlite3_step(stmt) == SQLITE_ROW) {
+    constexpr int kColCycleId = 0;
+    constexpr int kColExerciseType = 1;
+    constexpr int kColTotalVolume = 2;
+    constexpr int kColCommonOriginalUnit = 3;
+    constexpr int kColTotalDays = 4;
+    constexpr int kColAvgIntensity = 5;
+    constexpr int kColSessionCount = 6;
+    constexpr int kColTotalReps = 7;
+    constexpr int kColTotalSets = 8;
+    constexpr int kColVolPower = 9;
+    constexpr int kColVolHypertrophy = 10;
+    constexpr int kColVolEndurance = 11;
+
+    VolumeStats stats;
+    stats.cycle_id =
+        reinterpret_cast<const char*>(sqlite3_column_text(stmt, kColCycleId));
+    stats.exercise_type = reinterpret_cast<const char*>(
+        sqlite3_column_text(stmt, kColExerciseType));
+    stats.total_volume = sqlite3_column_double(stmt, kColTotalVolume);
+    const unsigned char* unit_text =
+        sqlite3_column_text(stmt, kColCommonOriginalUnit);
+    stats.common_original_unit =
+        (unit_text != nullptr) ? reinterpret_cast<const char*>(unit_text) : "";
+    stats.total_days = sqlite3_column_int(stmt, kColTotalDays);
+    stats.average_intensity = sqlite3_column_double(stmt, kColAvgIntensity);
+    stats.session_count = sqlite3_column_int(stmt, kColSessionCount);
+    stats.total_reps = sqlite3_column_int(stmt, kColTotalReps);
+    stats.total_sets = sqlite3_column_int(stmt, kColTotalSets);
+    stats.vol_power = sqlite3_column_double(stmt, kColVolPower);
+    stats.vol_hypertrophy = sqlite3_column_double(stmt, kColVolHypertrophy);
+    stats.vol_endurance = sqlite3_column_double(stmt, kColVolEndurance);
+    stats_list.push_back(stats);
+  }
+
+  sqlite3_finalize(stmt);
+  return stats_list;
 }

@@ -7,6 +7,8 @@
 #include <filesystem>
 #include <iostream>
 #include <map>
+#include <ostream>
+#include <string_view>
 #include <string>
 #include <vector>
 
@@ -20,29 +22,54 @@ public:
    */
   static auto ExportToMarkdown(const std::map<std::string, CycleData>& data_by_cycle,
                                const std::vector<PRRecord>& prs,
-                               const std::string& output_dir) -> bool;
+                               const std::string& output_dir,
+                               const std::string& display_unit) -> bool;
+
+  static auto BuildTypeReportMarkdown(const std::string& cycle_id,
+                                      const std::string& type,
+                                      const CycleData& cycle_data,
+                                      const std::string& display_unit)
+      -> std::string;
 
 private:
-  struct SetGroup {
-    double weight_;
-    std::string unit_;
-    double elastic_band_;
-    std::string note_;
-    std::vector<int> reps_list_;
-    double volume_;
-    double estimated_1rm_;
+  struct TypeSummary {
+    double total_volume_kg_ = 0.0;
+    std::string common_original_unit_;
+    double average_intensity_kg_ = 0.0;
+    int session_count_ = 0;
+    int total_reps_ = 0;
+    int total_sets_ = 0;
+    double vol_power_kg_ = 0.0;
+    double vol_hypertrophy_kg_ = 0.0;
+    double vol_endurance_kg_ = 0.0;
   };
 
-  static auto GroupSets(const std::vector<SetDetail>& sets) -> std::vector<SetGroup>;
-  static auto FormatExercise(std::ostream& md_file, const LogEntry& log) -> void;
+  struct SetGroup {
+    double weight_kg_;
+    std::string original_unit_;
+    double original_weight_value_;
+    std::string note_;
+    std::vector<int> reps_list_;
+    double volume_kg_;
+    double estimated_1rm_kg_;
+  };
+
+  static auto BuildTypeSummary(const std::vector<LogEntry>& type_logs)
+      -> TypeSummary;
+  static auto GroupSets(const std::vector<SetDetail>& sets,
+                        std::string_view display_unit) -> std::vector<SetGroup>;
+  static auto FormatExercise(std::ostream& md_file, const LogEntry& log,
+                             std::string_view display_unit) -> void;
 
   static auto ProcessCycle(const std::string& cycle_id,
                           const CycleData& cycle_data,
-                          const std::string& output_dir) -> void;
+                          const std::string& output_dir,
+                          const std::string& display_unit) -> void;
 
   struct ReportParams {
     std::string_view cycle_id;
     std::string_view type;
+    std::string_view display_unit;
   };
 
   static auto ProcessType(const ReportParams& params,
@@ -51,10 +78,17 @@ private:
                          const std::filesystem::path& cycle_dir) -> void;
 
   static auto ExportSummary(const std::vector<PRRecord>& prs,
-                            const std::string& output_dir) -> void;
+                            const std::string& output_dir,
+                            const std::string& display_unit) -> void;
 
-  static auto ProcessDateGroup(std::ofstream& md_file, const std::string& date,
-                              const std::vector<LogEntry>& daily_entries)
+  static auto WriteTypeReportMarkdown(std::ostream& output,
+                                      const ReportParams& params,
+                                      const std::vector<LogEntry>& type_logs,
+                                      const CycleData& cycle_summary) -> void;
+
+  static auto ProcessDateGroup(std::ostream& md_file, const std::string& date,
+                               const std::vector<LogEntry>& daily_entries,
+                               std::string_view display_unit)
       -> void;
 };
 

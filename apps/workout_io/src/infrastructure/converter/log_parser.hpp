@@ -32,13 +32,20 @@ private:
 
   std::vector<DailyData> all_daily_data_;
   std::optional<int> parsed_year_;
+  std::optional<int> parsed_month_;
 
   [[nodiscard]] static auto Trim(std::string_view value) -> std::string;
   [[nodiscard]] static auto SplitComment(std::string_view value) -> std::pair<std::string, std::string>;
   [[nodiscard]] static auto IsNoteLine(std::string_view text) -> bool;
-  [[nodiscard]] static auto ParseContentLine(const std::string& line, double& out_weight) -> std::vector<SetData>;
+  [[nodiscard]] static auto ParseContentLine(const std::string& line,
+                                             double& out_weight_kg,
+                                             std::string& out_original_unit,
+                                             double& out_original_weight_value)
+      -> std::vector<SetData>;
 
   [[nodiscard]] auto HandleYearLine(const std::string& line) -> bool;
+  [[nodiscard]] auto HandleMonthLine(const std::string& line, ParserState& state)
+      -> bool;
   [[nodiscard]] auto HandleDateLine(const std::string& line, ParserState& state) -> bool;
   [[nodiscard]] static auto HandleNoteLine(const std::string& line, ParserState& state) -> bool;
   [[nodiscard]] static auto HandleContentLine(const std::string& line, ParserState& state) -> bool;

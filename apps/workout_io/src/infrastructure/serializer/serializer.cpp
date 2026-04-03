@@ -6,6 +6,7 @@
 #include <iostream>
 
 #include "common/c_json_helper.hpp"
+#include "domain/services/weight_unit_service.hpp"
 
 auto Serializer::CreateSetJson(const SetData& set_data) -> cJSON* {
   cJSON* j_set = cJSON_CreateObject();
@@ -13,18 +14,13 @@ auto Serializer::CreateSetJson(const SetData& set_data) -> cJSON* {
   if (!set_data.note_.empty()) {
     cJSON_AddStringToObject(j_set, "note", set_data.note_.c_str());
   }
-
-  if (set_data.weight_ < 0) {
-    cJSON_AddNumberToObject(j_set, "elastic_band", std::abs(set_data.weight_));
-    cJSON_AddStringToObject(j_set, "unit", "lbs");
-    cJSON_AddNumberToObject(j_set, "reps", set_data.reps_);
-    cJSON_AddNumberToObject(j_set, "volume", 0.0);
-  } else {
-    cJSON_AddNumberToObject(j_set, "weight", set_data.weight_);
-    cJSON_AddStringToObject(j_set, "unit", "kg");
-    cJSON_AddNumberToObject(j_set, "reps", set_data.reps_);
-    cJSON_AddNumberToObject(j_set, "volume", set_data.volume_);
-  }
+  cJSON_AddNumberToObject(j_set, "weight_kg", set_data.weight_kg_);
+  cJSON_AddStringToObject(j_set, "original_unit",
+                          set_data.original_unit_.c_str());
+  cJSON_AddNumberToObject(j_set, "original_weight_value",
+                          set_data.original_weight_value_);
+  cJSON_AddNumberToObject(j_set, "reps", set_data.reps_);
+  cJSON_AddNumberToObject(j_set, "volume", set_data.volume_);
   return j_set;
 }
 
@@ -112,15 +108,12 @@ auto Serializer::ParseSetJson(const cJSON* json_set) -> SetData {
   set_data.reps_ = GetInt(json_set, "reps");
   set_data.volume_ = GetDouble(json_set, "volume");
   set_data.note_ = GetString(json_set, "note");
-
-  double weight = GetDouble(json_set, "weight", 0.0);
-  double elastic = GetDouble(json_set, "elastic_band", 0.0);
-
-  if (elastic > 0) {
-    set_data.weight_ = -elastic;
-  } else {
-    set_data.weight_ = weight;
-  }
+  set_data.weight_kg_ = GetDouble(json_set, "weight_kg", 0.0);
+  set_data.original_unit_ = WeightUnitService::NormalizeOriginalUnit(
+                                GetString(json_set, "original_unit", "kg"))
+                                .value_or("kg");
+  set_data.original_weight_value_ =
+      GetDouble(json_set, "original_weight_value", set_data.weight_kg_);
 
   return set_data;
 }

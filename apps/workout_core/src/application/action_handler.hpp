@@ -16,6 +16,7 @@ struct AppConfig {
   std::string base_path_;
   std::string type_filter_;
   std::string cycle_id_filter_;
+  std::string display_unit_{"original"};
 };
 
 class ActionHandler {

@@ -7,14 +7,16 @@
 #include <optional>
 #include <regex>
 #include <string>
+#include <unordered_set>
 #include <vector>
 
 struct ValidationRules {
   std::regex year_regex;
+  std::regex month_regex;
   std::regex date_regex;
   std::regex note_regex;
-  std::regex title_regex;
   std::regex content_regex;
+  std::unordered_set<std::string> valid_titles;
 };
 
 class Validator {

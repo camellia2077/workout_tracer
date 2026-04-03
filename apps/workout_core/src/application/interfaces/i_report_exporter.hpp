@@ -9,7 +9,9 @@ class IReportExporter {
 public:
   virtual ~IReportExporter() = default;
 
-  [[nodiscard]] virtual auto ExportReports(const std::string& output_dir)
+  [[nodiscard]] virtual auto ExportReports(const std::string& output_dir,
+                                           const std::string& display_unit,
+                                           const std::string& cycle_id_filter)
       -> UseCaseResult<void> = 0;
 };
 

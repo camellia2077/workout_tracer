@@ -9,6 +9,7 @@
 
 enum class StateType {
   EXPECTING_YEAR,
+  EXPECTING_MONTH,
   EXPECTING_DATE,
   EXPECTING_TITLE,
   EXPECTING_CONTENT,
@@ -33,10 +34,13 @@ private:
     bool content_seen_for_date = false;
     bool note_seen_for_date = false;
     int last_date_line = 0;
+    std::optional<int> current_month = std::nullopt;
   };
 
   auto HandleYearState(const std::string& line, const ValidationRules& rules,
                       int& error_count) -> bool;
+  auto HandleMonthMatch(const std::string& line, const ValidationRules& rules,
+                       int& error_count) -> bool;
   auto HandleDateMatch(const std::string& line, const ValidationRules& rules,
                       int& error_count) -> bool;
   auto HandleNoteMatch(const std::string& line, const ValidationRules& rules,
@@ -45,6 +49,9 @@ private:
                          int& error_count) -> bool;
   auto HandleTitleMatch(const std::string& line, const ValidationRules& rules,
                        int& error_count) -> bool;
+
+  [[nodiscard]] static auto ExtractMainToken(const std::string& line)
+      -> std::string;
 
   ValidationState state_;
 };

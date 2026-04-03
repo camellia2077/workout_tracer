@@ -48,26 +48,24 @@ auto Validator::CreateRules(const std::vector<std::string>& valid_titles)
     std::cerr << "Warning: [Validator] No valid titles found in mapping file."
               << std::endl;
   }
-  std::stringstream title_regex_pattern;
-  title_regex_pattern << "^(";
-  for (size_t i = 0; i < valid_titles.size(); ++i) {
-    title_regex_pattern << valid_titles[i]
-                        << (i < valid_titles.size() - 1 ? "|" : "");
-  }
-  title_regex_pattern << ")$";
-  std::string title_with_comment = title_regex_pattern.str();
-  if (!title_with_comment.empty() && title_with_comment.back() == '$') {
-    title_with_comment.pop_back();
-    title_with_comment += R"((\s*(?://|#|;).*)?$)";
+
+  // Keep titles data-driven from mapping.toml. New exercise keys should only
+  // require TOML updates, not regex template edits in C++.
+  std::unordered_set<std::string> title_set;
+  title_set.reserve(valid_titles.size());
+  for (const auto& title : valid_titles) {
+    title_set.insert(title);
   }
   try {
     return ValidationRules{
         .year_regex = std::regex(R"(^y\d{4}$)"),
+        .month_regex = std::regex(R"(^m(0[1-9]|1[0-2])$)", std::regex::icase),
         .date_regex = std::regex(R"(^\d{4}$)"),
         .note_regex = std::regex(R"(^r\s+.+$)"),
-        .title_regex = std::regex(title_with_comment),
         .content_regex = std::regex(
-            R"(^[+-]\s*\d+(\.\d+)?(lbs|kg|LBS|KG)?\s+\d+(\s*\+\s*\d+)*(\s*(?://|#|;).*)?$)")};
+            R"(^[+-]\s*\d+(\.\d+)?(kg|l|lb|lbs)?\s+\d+(\s*\+\s*\d+)*(\s*(?://|#|;).*)?$)",
+            std::regex::icase),
+        .valid_titles = std::move(title_set)};
   } catch (const std::regex_error& e) {
     std::cerr << "Error: [Validator] Failed to create regex rules: " << e.what()
               << std::endl;
@@ -77,28 +75,18 @@ auto Validator::CreateRules(const std::vector<std::string>& valid_titles)
 
 auto Validator::LoadValidTitles(const std::string& mapping_file_path)
     -> std::optional<std::vector<std::string>> {
-  auto json_data_opt = mapping_provider_.GetMappingData(mapping_file_path);
-  if (!json_data_opt.has_value()) {
+  auto mapping_data_opt = mapping_provider_.GetMappingData(mapping_file_path);
+  if (!mapping_data_opt.has_value()) {
     std::cerr << "Error: [Validator] Could not read or parse mapping file at: "
               << mapping_file_path << std::endl;
     return std::nullopt;
   }
 
-  cJSON* root = json_data_opt.value().get();
-
-  if (cJSON_IsObject(root) == 0) {
-    std::cerr << "Error: [Validator] Mapping file content is not a JSON object."
-              << std::endl;
-    return std::nullopt;
-  }
-
   std::vector<std::string> titles;
-  cJSON* child = root->child;
-  while (child != nullptr) {
-    if (child->string != nullptr) {
-      titles.emplace_back(child->string);
-    }
-    child = child->next;
+  titles.reserve(mapping_data_opt->items.size());
+  // Only section keys are accepted as title tokens.
+  for (const auto& item : mapping_data_opt->items) {
+    titles.push_back(item.first);
   }
   return titles;
 }

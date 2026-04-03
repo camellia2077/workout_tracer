@@ -3,6 +3,7 @@
 #define CLI_COMMANDS_QUERY_PR_COMMAND_HPP_
 
 #include "cli/framework/command.hpp"
+#include "cli/commands/display_unit_option.hpp"
 
 #include <iostream>
 
@@ -24,22 +25,41 @@ public:
   }
 
   auto GetUsage(std::string_view program_name) const -> std::string override {
-    return std::string(program_name) + " query pr";
+    return std::string(program_name) +
+           " query pr [--unit <original|kg|lb>]";
   }
 
   auto GetExamples(std::string_view program_name) const
       -> std::vector<std::string> override {
-    return {std::string(program_name) + " query pr"};
+    return {
+        std::string(program_name) + " query pr",
+        std::string(program_name) + " query pr --unit lb",
+    };
   }
 
-  auto Parse([[maybe_unused]] const std::vector<std::string>& args,
+  auto GetOptions() const -> HelpEntries override {
+    return {
+        {"--unit <original|kg|lb>",
+         "Display PR weights in original, kg, or lb."},
+    };
+  }
+
+  auto Parse(const std::vector<std::string>& args,
              AppConfig& config) const -> bool override {
-    if (args.size() > 1) {
-      std::cerr << "Error: 'pr' command does not take any additional arguments."
-                << std::endl;
-      return false;
-    }
     config.action_ = ActionType::QueryPR;
+
+    for (size_t i = 1; i < args.size(); ++i) {
+      if (args[i] == "--unit") {
+        if (!ParseDisplayUnitArgument(args, i, config, "pr")) {
+          return false;
+        }
+      } else {
+        std::cerr << "Error: Unknown argument '" << args[i]
+                  << "' for 'pr' command." << std::endl;
+        return false;
+      }
+    }
+
     return true;
   }
 };

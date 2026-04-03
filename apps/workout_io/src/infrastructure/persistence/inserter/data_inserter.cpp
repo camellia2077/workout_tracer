@@ -8,26 +8,28 @@
 
 DataInserter::DataInserter(sqlite3* db_handle) : db_(db_handle) {}
 
+namespace {
+auto NormalizeCycleId(const std::string& date) -> std::string {
+  // Canonical cycle granularity is monthly: YYYY-MM.
+  if (date.size() >= 7 && date[4] == '-') {
+    return date.substr(0, 7);
+  }
+  return date;
+}
+}  // namespace
+
 auto DataInserter::InsertSets(sqlite3_stmt* stmt_set, sqlite3_int64 log_id,
                               const std::vector<SetData>& sets) -> void {
   for (const auto& set_item : sets) {
-    double weight = set_item.weight_;
-    double elastic_band_weight = 0.0;
-    std::string unit = "kg";
-
-    if (weight < 0) {
-      elastic_band_weight = std::abs(weight);
-      weight = 0.0;
-      unit = "lbs";
-    }
-
     sqlite3_bind_int64(stmt_set, kColSetLogId, log_id);
     sqlite3_bind_int(stmt_set, kColSetNumber, set_item.set_number_);
-    sqlite3_bind_double(stmt_set, kColSetWeight, weight);
+    sqlite3_bind_double(stmt_set, kColSetWeightKg, set_item.weight_kg_);
+    sqlite3_bind_text(stmt_set, kColSetOriginalUnit,
+                      set_item.original_unit_.c_str(), -1, SQLITE_STATIC);
+    sqlite3_bind_double(stmt_set, kColSetOriginalWeightValue,
+                        set_item.original_weight_value_);
     sqlite3_bind_int(stmt_set, kColSetReps, set_item.reps_);
     sqlite3_bind_double(stmt_set, kColSetVolume, set_item.volume_);
-    sqlite3_bind_text(stmt_set, kColSetUnit, unit.c_str(), -1, SQLITE_STATIC);
-    sqlite3_bind_double(stmt_set, kColSetElasticWeight, elastic_band_weight);
     sqlite3_bind_text(stmt_set, kColSetNote, set_item.note_.c_str(), -1,
                       SQLITE_STATIC);
 
@@ -49,8 +51,9 @@ auto DataInserter::Insert(const std::vector<DailyData>& data) -> bool {
       "project_note, exercise_name, exercise_type, total_volume) "
       "VALUES (?, ?, ?, ?, ?, ?, ?, ?);";
   const char* sql_insert_set =
-      "INSERT INTO training_sets (log_id, set_number, weight, reps, volume, "
-      "unit, elastic_band_weight, set_note) VALUES (?, ?, ?, ?, ?, ?, ?, ?);";
+      "INSERT INTO training_sets (log_id, set_number, weight_kg, "
+      "original_unit, original_weight_value, reps, volume, set_note) "
+      "VALUES (?, ?, ?, ?, ?, ?, ?, ?);";
 
   sqlite3_stmt* stmt_log = nullptr;
   sqlite3_stmt* stmt_set = nullptr;
@@ -71,7 +74,7 @@ auto DataInserter::Insert(const std::vector<DailyData>& data) -> bool {
   }
 
   try {
-    std::string cycle_id = data[0].date_;
+    std::string cycle_id = NormalizeCycleId(data[0].date_);
     int total_days = static_cast<int>(data.size());
 
     for (const auto& daily : data) {

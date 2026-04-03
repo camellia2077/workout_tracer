@@ -10,6 +10,8 @@
 struct PersonalRecord {
   std::string exercise_name;
   double max_weight;
+  std::string original_unit;
+  double original_weight_value;
   int reps;
   std::string date;
   double estimated_1rm_epley;
@@ -33,6 +35,7 @@ struct VolumeStats {
   std::string cycle_id;
   std::string exercise_type;
   double total_volume;
+  std::string common_original_unit;
   int total_days;
   double average_intensity;
   int session_count;
@@ -46,11 +49,14 @@ struct VolumeStats {
 class QueryFacade {
 public:
   static auto QueryAllPRs(sqlite3* db) -> std::vector<PersonalRecord>;
-  static auto GetExercisesByType(sqlite3* db, const std::string& type_filter) 
+  static auto GetExercisesByType(sqlite3* db, const std::string& type_filter)
       -> std::vector<ExerciseInfo>;
   static auto GetAllCycles(sqlite3* db) -> std::vector<CycleRecord>;
-  static auto GetVolumeStats(sqlite3* db, const std::string& cycle_id, const std::string& type)
+  static auto GetVolumeStats(sqlite3* db, const std::string& cycle_id,
+                             const std::string& type)
       -> std::optional<VolumeStats>;
+  static auto GetVolumeStatsByCycle(sqlite3* db, const std::string& cycle_id)
+      -> std::vector<VolumeStats>;
 };
 
 #endif // INFRASTRUCTURE_PERSISTENCE_FACADE_QUERY_FACADE_HPP_

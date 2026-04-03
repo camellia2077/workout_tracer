@@ -5,15 +5,17 @@
 
 #include "sqlite3.h"
 #include <map>
+#include <optional>
 #include <string>
 #include <vector>
 
 // 定义每一组的详细数据
 struct SetDetail {
   int reps_;
-  double weight_;
-  std::string unit_;
-  double elastic_band_weight_;
+  double weight_kg_;
+  std::string original_unit_;
+  double original_weight_value_;
+  double volume_;
   std::string note_;
 };
 
@@ -27,20 +29,15 @@ struct LogEntry {
 };
 
 struct CycleData {
-  std::string type_;
   int total_days_;
-  double average_intensity_ = 0.0;
-  int session_count_ = 0;
-  double vol_power_ = 0.0;
-  double vol_hypertrophy_ = 0.0;
-  double vol_endurance_ = 0.0;
-  double total_volume_ = 0.0;
   std::vector<LogEntry> logs_;
 };
 
 struct PRRecord {
   std::string exercise_name_;
-  double max_weight_;
+  double max_weight_kg_;
+  std::string original_unit_;
+  double original_weight_value_;
   int reps_;
   std::string date_;
   double estimated_1rm_epley_;
@@ -55,6 +52,10 @@ public:
    * @return 按 cycle_id 分组的日志数据。
    */
   static auto QueryAllLogs(sqlite3* sqlite_db) -> std::map<std::string, CycleData>;
+  static auto QueryCycleTypeLogs(sqlite3* sqlite_db,
+                                 const std::string& cycle_id,
+                                 const std::string& exercise_type)
+      -> std::optional<CycleData>;
   /**
    * @brief 查询所有动作的个人记录 (PR)。
    */

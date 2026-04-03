@@ -44,6 +44,8 @@ auto BuildRequestJson(const AppConfig& config) -> std::string {
                           config.type_filter_.c_str());
   cJSON_AddStringToObject(root.get(), "cycle_id_filter",
                           config.cycle_id_filter_.c_str());
+  cJSON_AddStringToObject(root.get(), "display_unit",
+                          config.display_unit_.c_str());
 
   char* json_chars = cJSON_PrintUnformatted(root.get());
   if (json_chars == nullptr) {

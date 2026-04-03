@@ -9,20 +9,22 @@
 // 定义每一组的具体数据
 struct SetData {
   int set_number_;          // 组号 (e.g., 1, 2, 3...)
-  double weight_;           // 这组的重量
+  double weight_kg_;        // 标准化后的重量（kg）
+  std::string original_unit_{"kg"}; // 原始输入单位（kg/lb）
+  double original_weight_value_{0.0}; // 保留带符号的原始输入数值
   int reps_;                // 这组的次数
-  double volume_{0.0};      // volume = weight * reps
+  double volume_{0.0};      // volume = weight_kg * reps
   std::string note_;        // set note
 
   [[nodiscard]] auto CalculateEpley() const -> double {
-    if (reps_ <= 1) return weight_;
-    return weight_ * (1.0 + static_cast<double>(reps_) / 30.0);
+    if (reps_ <= 1) return weight_kg_;
+    return weight_kg_ * (1.0 + static_cast<double>(reps_) / 30.0);
   }
 
   [[nodiscard]] auto CalculateBrzycki() const -> double {
-    if (reps_ <= 1) return weight_;
-    if (reps_ >= 37) return weight_ * 36.0; // Avoid division by zero/negative
-    return weight_ * (36.0 / (37.0 - static_cast<double>(reps_)));
+    if (reps_ <= 1) return weight_kg_;
+    if (reps_ >= 37) return weight_kg_ * 36.0; // Avoid division by zero/negative
+    return weight_kg_ * (36.0 / (37.0 - static_cast<double>(reps_)));
   }
 };
 

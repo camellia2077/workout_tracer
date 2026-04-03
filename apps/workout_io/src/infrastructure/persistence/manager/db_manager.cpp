@@ -49,11 +49,11 @@ auto DbManager::CreateTables() -> bool {
       "  id INTEGER PRIMARY KEY AUTOINCREMENT,"
       "  log_id INTEGER NOT NULL,"
       "  set_number INTEGER NOT NULL,"
-      "  weight REAL NOT NULL,"
+      "  weight_kg REAL NOT NULL,"
+      "  original_unit TEXT NOT NULL DEFAULT 'kg',"
+      "  original_weight_value REAL NOT NULL,"
       "  reps INTEGER NOT NULL,"
       "  volume REAL NOT NULL,"
-      "  unit TEXT DEFAULT 'kg',"
-      "  elastic_band_weight REAL DEFAULT 0.0,"
       "  set_note TEXT DEFAULT '',"
       "  FOREIGN KEY (log_id) REFERENCES training_logs (id)"
       ");";
@@ -66,57 +66,5 @@ auto DbManager::CreateTables() -> bool {
   }
 
   std::cout << "Tables verified/created successfully." << std::endl;
-
-  struct ColumnParams {
-    std::string_view table_name;
-    std::string_view column_name;
-    std::string_view column_definition;
-  };
-
-  auto ensure_column = [&](const ColumnParams& params) -> bool {
-    sqlite3_stmt* stmt = nullptr;
-    bool has_column = false;
-    std::string pragma_sql =
-        "PRAGMA table_info(" + std::string(params.table_name) + ");";
-    if (sqlite3_prepare_v2(db_, pragma_sql.c_str(), -1, &stmt, nullptr) ==
-        SQLITE_OK) {
-      while (sqlite3_step(stmt) == SQLITE_ROW) {
-        const unsigned char* col_text = sqlite3_column_text(stmt, 1);
-        if (col_text != nullptr && std::string(reinterpret_cast<const char*>(
-                                       col_text)) == params.column_name) {
-          has_column = true;
-          break;
-        }
-      }
-    }
-    if (stmt != nullptr) {
-      sqlite3_finalize(stmt);
-    }
-    if (has_column) {
-      return true;
-    }
-    std::string alter_sql = "ALTER TABLE " + std::string(params.table_name) +
-                            " ADD COLUMN " +
-                            std::string(params.column_definition) + ";";
-    if (sqlite3_exec(db_, alter_sql.c_str(), nullptr, nullptr, &z_err_msg) !=
-        SQLITE_OK) {
-      std::cerr << "SQL error adding " << params.column_name
-                << " column: " << z_err_msg << std::endl;
-      sqlite3_free(z_err_msg);
-      return false;
-    }
-    std::cout << "Added " << params.column_name << " column to "
-              << params.table_name << "." << std::endl;
-    return true;
-  };
-
-  return ensure_column({.table_name = "training_logs",
-                        .column_name = "daily_note",
-                        .column_definition = "daily_note TEXT DEFAULT ''"}) &&
-         ensure_column({.table_name = "training_logs",
-                        .column_name = "project_note",
-                        .column_definition = "project_note TEXT DEFAULT ''"}) &&
-         ensure_column({.table_name = "training_sets",
-                        .column_name = "set_note",
-                        .column_definition = "set_note TEXT DEFAULT ''"});
+  return true;
 }

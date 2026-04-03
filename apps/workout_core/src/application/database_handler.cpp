@@ -14,6 +14,7 @@
 #include "core/application/core_error_code.hpp"
 #include "core/application/use_case_result.hpp"
 #include "domain/services/training_metrics_service.hpp"
+#include "domain/services/weight_unit_service.hpp"
 #include "infrastructure/serializer/serializer.hpp"
 
 namespace fs = std::filesystem;
@@ -58,16 +59,30 @@ auto ToExitCode(const UseCaseResult<PayloadType>& result) -> AppExitCode {
   return MapCoreErrorCode(result.error_code_);
 }
 
-auto PrintPersonalRecords(const std::vector<WorkoutPersonalRecord>& prs)
-    -> void {
+auto PrintPersonalRecords(const std::vector<WorkoutPersonalRecord>& prs,
+                          const std::string& display_unit) -> void {
   std::cout << "\n--- Personal Records ---" << std::endl;
   for (const auto& pr : prs) {
-    std::cout << pr.exercise_name_ << ": " << pr.max_weight_ << "kg x "
-              << pr.reps_ << " (Date: " << pr.date_ << ")";
-    if (pr.reps_ > 1) {
-      std::cout << " [Est. 1RM: Epley " << std::fixed << std::setprecision(1)
-                << pr.estimated_1rm_epley_ << "kg, Brzycki "
-                << pr.estimated_1rm_brzycki_ << "kg]";
+    const auto display_weight = WeightUnitService::ResolveDetailWeight(
+        pr.max_weight_kg_, pr.original_unit_, pr.original_weight_value_,
+        display_unit);
+    const std::string metric_unit = WeightUnitService::ResolveDetailDisplayUnit(
+        display_unit, pr.original_unit_);
+    const double epley_display =
+        WeightUnitService::ConvertFromKg(pr.estimated_1rm_epley_, metric_unit);
+    const double brzycki_display = WeightUnitService::ConvertFromKg(
+        pr.estimated_1rm_brzycki_, metric_unit);
+
+    std::cout << pr.exercise_name_ << ": "
+              << WeightUnitService::FormatWeightWithUnit(display_weight.value_,
+                                                         display_weight.unit_)
+              << " x " << pr.reps_ << " (Date: " << pr.date_ << ")";
+    if (pr.reps_ > 1 && pr.max_weight_kg_ > 0.0) {
+      std::cout << " [Est. 1RM: Epley "
+                << WeightUnitService::FormatMetricValue(epley_display)
+                << metric_unit << ", Brzycki "
+                << WeightUnitService::FormatMetricValue(brzycki_display)
+                << metric_unit << "]";
     }
     std::cout << std::endl;
   }
@@ -90,9 +105,17 @@ auto PrintCycles(const std::vector<WorkoutCycleRecord>& cycles) -> void {
   }
 }
 
-auto PrintVolumeStats(const WorkoutVolumeStats& stats) -> void {
+auto PrintVolumeStats(const WorkoutVolumeStats& stats,
+                      const std::string& display_unit) -> void {
+  const std::string aggregate_unit =
+      WeightUnitService::ResolveAggregateDisplayUnit(
+          display_unit, stats.common_original_unit_);
+  const double total_volume =
+      WeightUnitService::ConvertFromKg(stats.total_volume_, aggregate_unit);
+  const double average_intensity = WeightUnitService::ConvertFromKg(
+      stats.average_intensity_, aggregate_unit);
   const double avg_daily_vol = TrainingMetricsService::AverageDailyVolume(
-      stats.total_volume_, stats.total_days_);
+      total_volume, stats.total_days_);
   const double frequency = TrainingMetricsService::SessionsPerWeek(
       stats.session_count_, stats.total_days_);
   const double density =
@@ -106,11 +129,15 @@ auto PrintVolumeStats(const WorkoutVolumeStats& stats) -> void {
   std::cout << "Cycle:           " << stats.cycle_id_ << std::endl;
   std::cout << "Type:            " << stats.exercise_type_ << std::endl;
   std::cout << "------------------------------------" << std::endl;
-  std::cout << "Total Volume:    " << std::fixed << std::setprecision(1)
-            << stats.total_volume_ << "kg" << std::endl;
-  std::cout << "Avg Intensity:   " << stats.average_intensity_ << "kg/rep"
-            << std::endl;
-  std::cout << "Avg Daily Vol:   " << avg_daily_vol << "kg/day" << std::endl;
+  std::cout << "Total Volume:    "
+            << WeightUnitService::FormatMetricValue(total_volume)
+            << aggregate_unit << std::endl;
+  std::cout << "Avg Intensity:   "
+            << WeightUnitService::FormatMetricValue(average_intensity)
+            << aggregate_unit << "/rep" << std::endl;
+  std::cout << "Avg Daily Vol:   "
+            << WeightUnitService::FormatMetricValue(avg_daily_vol)
+            << aggregate_unit << "/day" << std::endl;
   std::cout << "------------------------------------" << std::endl;
   std::cout << "Sessions:        " << stats.session_count_ << std::endl;
   std::cout << "Frequency:       " << frequency << " sessions/week"
@@ -175,6 +202,9 @@ auto DatabaseHandler::Handle(const AppConfig& config) -> AppExitCode {
 
   if (config.action_ == ActionType::Export) {
     std::cout << "Performing report export from database..." << std::endl;
+    if (!config.cycle_id_filter_.empty()) {
+      std::cout << "Cycle filter: " << config.cycle_id_filter_ << std::endl;
+    }
 
     fs::path db_path = ResolveDatabasePath(config);
     if (!fs::exists(db_path)) {
@@ -186,7 +216,8 @@ auto DatabaseHandler::Handle(const AppConfig& config) -> AppExitCode {
     fs::path output_dir = ResolveReportOutputDir(config);
     fs::create_directories(output_dir);
 
-    auto export_result = report_exporter_.ExportReports(output_dir.string());
+    auto export_result = report_exporter_.ExportReports(
+        output_dir.string(), config.display_unit_, config.cycle_id_filter_);
     if (export_result.IsSuccess()) {
       std::cout << "\nReport export completed successfully." << std::endl;
       return AppExitCode::kSuccess;
@@ -222,7 +253,7 @@ auto DatabaseHandler::Handle(const AppConfig& config) -> AppExitCode {
         std::cout << "No PR data found." << std::endl;
         return AppExitCode::kSuccess;
       }
-      PrintPersonalRecords(prs);
+      PrintPersonalRecords(prs, config.display_unit_);
       return AppExitCode::kSuccess;
     }
 
@@ -270,7 +301,7 @@ auto DatabaseHandler::Handle(const AppConfig& config) -> AppExitCode {
                   << ", Type: " << config.type_filter_ << std::endl;
         return AppExitCode::kSuccess;
       }
-      PrintVolumeStats(stats_opt.value());
+      PrintVolumeStats(stats_opt.value(), config.display_unit_);
       return AppExitCode::kSuccess;
     }
   }

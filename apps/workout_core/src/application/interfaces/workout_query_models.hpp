@@ -6,7 +6,9 @@
 
 struct WorkoutPersonalRecord {
   std::string exercise_name_;
-  double max_weight_ = 0.0;
+  double max_weight_kg_ = 0.0;
+  std::string original_unit_ = "kg";
+  double original_weight_value_ = 0.0;
   int reps_ = 0;
   std::string date_;
   double estimated_1rm_epley_ = 0.0;
@@ -30,6 +32,7 @@ struct WorkoutVolumeStats {
   std::string cycle_id_;
   std::string exercise_type_;
   double total_volume_ = 0.0;
+  std::string common_original_unit_;
   int total_days_ = 0;
   double average_intensity_ = 0.0;
   int session_count_ = 0;

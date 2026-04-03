@@ -9,7 +9,9 @@
 SqliteReportExporter::SqliteReportExporter(std::string db_path)
     : db_path_(std::move(db_path)) {}
 
-auto SqliteReportExporter::ExportReports(const std::string& output_dir)
+auto SqliteReportExporter::ExportReports(const std::string& output_dir,
+                                         const std::string& display_unit,
+                                         const std::string& cycle_id_filter)
     -> UseCaseResult<void> {
   DbManager db_manager(db_path_);
   if (!db_manager.Open()) {
@@ -17,7 +19,8 @@ auto SqliteReportExporter::ExportReports(const std::string& output_dir)
                                         "failed to open database");
   }
 
-  if (!ReportFacade::GenerateReport(db_manager.GetConnection(), output_dir)) {
+  if (!ReportFacade::GenerateReport(db_manager.GetConnection(), output_dir,
+                                    display_unit, cycle_id_filter)) {
     return UseCaseResult<void>::Failure(CoreErrorCode::kProcessingError,
                                         "failed to export reports");
   }

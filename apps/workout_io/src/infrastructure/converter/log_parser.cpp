@@ -10,6 +10,8 @@
 #include <sstream>
 #include <utility>
 
+#include "domain/services/weight_unit_service.hpp"
+
 LogParser::LogParser() = default;
 
 auto LogParser::GetParsedData() const -> const std::vector<DailyData>& {
@@ -90,6 +92,7 @@ auto LogParser::ParseText(std::string_view text) -> bool {
 auto LogParser::ParseInput(std::istream& input) -> bool {
   all_daily_data_.clear();
   parsed_year_.reset();
+  parsed_month_.reset();
 
   std::string line;
   ParserState state;
@@ -102,8 +105,12 @@ auto LogParser::ParseInput(std::istream& input) -> bool {
     }
 
     bool success = true;
-    if (line[0] == 'y') {
+    const char marker =
+        static_cast<char>(std::tolower(static_cast<unsigned char>(line[0])));
+    if (marker == 'y') {
       success = HandleYearLine(line);
+    } else if (marker == 'm') {
+      success = HandleMonthLine(line, state);
     } else if (line.length() == 4 && std::ranges::all_of(line, ::isdigit)) {
       success = HandleDateLine(line, state);
     } else if (IsNoteLine(line)) {
@@ -129,21 +136,71 @@ auto LogParser::ParseInput(std::istream& input) -> bool {
 auto LogParser::HandleYearLine(const std::string& line) -> bool {
   const std::regex kYearRegex(R"(^y(\d{4})$)");
   std::smatch match;
-  if (std::regex_match(line, match, kYearRegex)) {
-    if (!parsed_year_.has_value()) {
-      parsed_year_ = std::stoi(match[1].str());
-    }
+  if (!std::regex_match(line, match, kYearRegex)) {
+    std::cerr << "Error: [LogParser] Invalid year line '" << line
+              << "'. Expected format yYYYY." << std::endl;
+    return false;
   }
+
+  parsed_year_ = std::stoi(match[1].str());
+  // Force each year section to declare a fresh month explicitly.
+  parsed_month_.reset();
+  return true;
+}
+
+auto LogParser::HandleMonthLine(const std::string& line, ParserState& state)
+    -> bool {
+  if (!parsed_year_.has_value()) {
+    std::cerr << "Error: [LogParser] Month line found before year declaration "
+                 "at line "
+              << state.line_counter_ << "." << std::endl;
+    return false;
+  }
+
+  const std::regex kMonthRegex(R"(^m(0[1-9]|1[0-2])$)", std::regex::icase);
+  std::smatch match;
+  if (!std::regex_match(line, match, kMonthRegex)) {
+    std::cerr << "Error: [LogParser] Invalid month line '" << line
+              << "'. Expected format mMM." << std::endl;
+    return false;
+  }
+  parsed_month_ = std::stoi(match[1].str());
   return true;
 }
 
 auto LogParser::HandleDateLine(const std::string& line, ParserState& state)
     -> bool {
+  if (!parsed_year_.has_value()) {
+    std::cerr << "Error: [LogParser] Date found before year declaration at "
+                 "line "
+              << state.line_counter_ << "." << std::endl;
+    return false;
+  }
+  if (!parsed_month_.has_value()) {
+    std::cerr << "Error: [LogParser] Date found before month declaration at "
+                 "line "
+              << state.line_counter_ << "." << std::endl;
+    return false;
+  }
+
   if (!state.current_daily_data_.date_.empty()) {
     all_daily_data_.push_back(state.current_daily_data_);
   }
+
+  const std::string expected_month =
+      parsed_month_.value() < 10 ? "0" + std::to_string(parsed_month_.value())
+                                 : std::to_string(parsed_month_.value());
+  if (line.substr(0, 2) != expected_month) {
+    std::cerr << "Error: [LogParser] Date month mismatch. Expected "
+              << expected_month << ", got " << line.substr(0, 2) << " at line "
+              << state.line_counter_ << "." << std::endl;
+    return false;
+  }
+
   state.current_daily_data_ = DailyData();
-  state.current_daily_data_.date_ = line;
+  // Keep MMDD internally so DateService can still compose final YYYY-MM-DD
+  // from parsed year and this validated month/day payload.
+  state.current_daily_data_.date_ = expected_month + line.substr(2, 2);
   state.current_project_ = nullptr;
   return true;
 }
@@ -190,10 +247,20 @@ auto LogParser::HandleContentLine(const std::string& line, ParserState& state)
               << state.line_counter_ << "." << std::endl;
     return false;
   }
-  double weight = 0.0;
-  std::vector<SetData> parsed_sets = ParseContentLine(main_part, weight);
+  double weight_kg = 0.0;
+  std::string original_unit;
+  double original_weight_value = 0.0;
+  std::vector<SetData> parsed_sets = ParseContentLine(
+      main_part, weight_kg, original_unit, original_weight_value);
+  if (parsed_sets.empty()) {
+    std::cerr << "Error: [LogParser] Failed to parse content line at line "
+              << state.line_counter_ << "." << std::endl;
+    return false;
+  }
   for (auto& set_item : parsed_sets) {
-    set_item.weight_ = weight;
+    set_item.weight_kg_ = weight_kg;
+    set_item.original_unit_ = original_unit;
+    set_item.original_weight_value_ = original_weight_value;
     set_item.note_ = note_part;
     set_item.set_number_ =
         static_cast<int>(state.current_project_->sets_.size()) + 1;
@@ -224,21 +291,35 @@ auto LogParser::HandleProjectLine(const std::string& line, ParserState& state)
   return true;
 }
 
-auto LogParser::ParseContentLine(const std::string& line, double& out_weight)
+auto LogParser::ParseContentLine(const std::string& line, double& out_weight_kg,
+                                 std::string& out_original_unit,
+                                 double& out_original_weight_value)
     -> std::vector<SetData> {
   std::vector<SetData> sets;
-  std::stringstream str_stream(line);
+  static const std::regex kContentRegex(
+      R"(^([+-])\s*(\d+(?:\.\d+)?)([A-Za-z]*)\s+(.+)$)");
 
-  char sign_char;
-  str_stream >> sign_char;
+  std::smatch match;
+  if (!std::regex_match(line, match, kContentRegex)) {
+    return sets;
+  }
 
-  double val;
-  str_stream >> val;
+  const char sign_char = match[1].str()[0];
+  const double absolute_value = std::stod(match[2].str());
+  const double signed_value =
+      (sign_char == '-') ? -absolute_value : absolute_value;
+  const auto normalized_unit =
+      WeightUnitService::NormalizeOriginalUnit(match[3].str());
+  if (!normalized_unit.has_value()) {
+    return sets;
+  }
 
-  out_weight = (sign_char == '-') ? -val : val;
+  out_original_unit = normalized_unit.value();
+  out_original_weight_value = signed_value;
+  out_weight_kg = WeightUnitService::ConvertToKg(out_original_weight_value,
+                                                 out_original_unit);
 
-  std::string reps_part;
-  std::getline(str_stream, reps_part);
+  const std::string reps_part = match[4].str();
 
   std::string clean_reps;
   for (char char_item : reps_part) {

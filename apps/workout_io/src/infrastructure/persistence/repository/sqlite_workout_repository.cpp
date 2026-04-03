@@ -12,7 +12,9 @@ namespace {
 auto MapPersonalRecord(const PersonalRecord& record) -> WorkoutPersonalRecord {
   return {
       .exercise_name_ = record.exercise_name,
-      .max_weight_ = record.max_weight,
+      .max_weight_kg_ = record.max_weight,
+      .original_unit_ = record.original_unit,
+      .original_weight_value_ = record.original_weight_value,
       .reps_ = record.reps,
       .date_ = record.date,
       .estimated_1rm_epley_ = record.estimated_1rm_epley,
@@ -42,6 +44,7 @@ auto MapVolumeStats(const VolumeStats& stats) -> WorkoutVolumeStats {
       .cycle_id_ = stats.cycle_id,
       .exercise_type_ = stats.exercise_type,
       .total_volume_ = stats.total_volume,
+      .common_original_unit_ = stats.common_original_unit,
       .total_days_ = stats.total_days,
       .average_intensity_ = stats.average_intensity,
       .session_count_ = stats.session_count,

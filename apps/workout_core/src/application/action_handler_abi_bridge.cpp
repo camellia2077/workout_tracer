@@ -6,6 +6,7 @@
 #include "application/action_handler.hpp"
 #include "common/c_json_helper.hpp"
 #include "core/abi/workout_core_abi.h"
+#include "domain/services/weight_unit_service.hpp"
 
 namespace {
 
@@ -80,6 +81,17 @@ auto BuildConfigFromRequest(const workout_core_request_t& request)
       .cycle_id_filter_ =
           GetJsonStringOrEmpty(request_root.get(), "cycle_id_filter"),
   };
+
+  const std::string raw_display_unit =
+      GetJsonStringOrEmpty(request_root.get(), "display_unit");
+  if (!raw_display_unit.empty()) {
+    const auto normalized_display_unit =
+        WeightUnitService::NormalizeDisplayUnit(raw_display_unit);
+    if (!normalized_display_unit.has_value()) {
+      return std::nullopt;
+    }
+    config.display_unit_ = normalized_display_unit.value();
+  }
 
   if (IsRequiredPathAction(config.action_) && config.log_filepath_.empty()) {
     return std::nullopt;

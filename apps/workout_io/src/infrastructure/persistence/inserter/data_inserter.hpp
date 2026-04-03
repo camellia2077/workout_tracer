@@ -30,11 +30,11 @@ private:
 
   static constexpr int kColSetLogId = 1;
   static constexpr int kColSetNumber = 2;
-  static constexpr int kColSetWeight = 3;
-  static constexpr int kColSetReps = 4;
-  static constexpr int kColSetVolume = 5;
-  static constexpr int kColSetUnit = 6;
-  static constexpr int kColSetElasticWeight = 7;
+  static constexpr int kColSetWeightKg = 3;
+  static constexpr int kColSetOriginalUnit = 4;
+  static constexpr int kColSetOriginalWeightValue = 5;
+  static constexpr int kColSetReps = 6;
+  static constexpr int kColSetVolume = 7;
   static constexpr int kColSetNote = 8;
 
   sqlite3* db_;
